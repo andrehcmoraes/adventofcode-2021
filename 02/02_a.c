@@ -28,7 +28,7 @@ static const unsigned int MOVE_STRING_LENS[] = {
 #define MOVE_SIZE sizeof(MOVE_STRING) / sizeof(const char *)
 #define MAX_LEN(LENA, LENB) LENA > LENB ? LENA : LENB
 
-#define STR_EQL(A,B) (strcmp(A,B) == 0)
+#define STR_EQL(A,B) (strncmp(A,B,MAX_MOVE_LEN) == 0)
 
 static char *FORMAT_READ=" %%%ds %%d";
 

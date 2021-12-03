@@ -3,7 +3,7 @@ SHELL = /bin/sh
 
 MAIN_A = 02_a
 MAIN_B = 02_b
-CFLAG = -Wall -g -std=c11
+CFLAGS = -Wall -g -std=c11
 CC = gcc
 
 %: %.o

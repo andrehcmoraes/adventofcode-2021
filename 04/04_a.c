@@ -57,25 +57,30 @@ void board_add(stack_t **s) {
   stack_append(s, (void *)b);
 }
 
-void board_mark(board_t *b, int n) {
+int board_mark(board_t *b, int n) {
   // This board doesn't have this number
-  if(b->num[n] < 0) return;
+  if(b->num[n] < 0) return 0;
 
   int x = b->num[n];
   int i = x / BOARD_ROWS;
   int j = (x - i*BOARD_ROWS) % BOARD_COLS;
   
   // Already marked
-  if(b->pos[i][j] < 0) return;
+  if(b->pos[i][j] < 0) return 0;
   
   b->sum -= n;
   b->pos[i][j] = -1;
+
+  return 1;
 }
 
 int board_check(board_t *b, int n) {
+  // This board doesn't have this number
+  if(b->num[n] < 0) return 0;
+
   int res;
   
-  int x = b->num[n] > 0 ? b->num[n] : 0 - b->num[n];
+  int x = b->num[n];
   int row = x / BOARD_ROWS;
   int col = (x - row*BOARD_ROWS) % BOARD_COLS;
   
@@ -124,16 +129,15 @@ int main() {
   char buf[BOARD_COLS * (ndigits+1)];
   board_t *cur_board = NULL;
   
-  // Read until no more empty lines
+  // Read until no more boards
   while(fgets(buf, sizeof(buf), stdin) > 0) {
-    if(buf[0] == '\n') {
+    if(buf[0] == '\n') continue;
+    
+    if(nrow == 0) {
       // Add new board
-      nrow = 0;
       board_add(&boards);
       cur_board = (board_t *)(boards->value);
-      continue;
     }
-    if(nrow >= BOARD_ROWS) continue;
     
     char *s = buf;
     for(int j=0; j<BOARD_COLS; j++) {
@@ -144,6 +148,7 @@ int main() {
       s += nbytes;
     }
     nrow++;
+    if(nrow >= BOARD_ROWS) nrow = 0;
   }
   
   
@@ -155,20 +160,25 @@ int main() {
     stack_t *b = boards;
     while(b != NULL) {
       cur_board = (board_t *)b->value;
-      board_mark(cur_board, n);
-      res = board_check(cur_board, n);
-      if(res) {
-        printf("BINGO at %d! Sum * n=%d\n", n, cur_board->sum *n);
-        break;
-      }
       b = b->next;
+      // If number wasn't marked, continue
+      if(!board_mark(cur_board, n)) continue;
+      
+      // If board didn't bingo, continue
+      if(!board_check(cur_board, n)) continue;
+      
+      // Board cleared
+      res = 1;
+      break;
     }
     if(res) break;
 
     // Reverse order
     t = t->prev;
   }
-
+  
+  printf("BINGO at %d! Sum * n=%d\n", n, cur_board->sum *n);
+  
   stack_free(&nums);
   stack_free(&boards);
   return 0;

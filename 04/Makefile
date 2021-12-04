@@ -21,5 +21,5 @@ test_a: ${MAIN_A}
 test_b: ${MAIN_B}
 	valgrind ./${MAIN_B} < input.txt
 
-all: test_a 
+all: test_a test_b
 	make clean

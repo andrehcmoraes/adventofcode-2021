@@ -2,149 +2,196 @@
 #include<string.h>
 #include<stdlib.h>
 
-#define NUM_BITS 12
+#define BOARD_COLS 5
+#define BOARD_ROWS 5
 
-// Double linked stack to hold all numbers
+#define MAX_NUM 100
+
+// Stack to hold structs
 typedef struct stack {
-  char *bin;
+  void *value;
   struct stack *next, *prev;
 } stack_t;
 
-// Supporting struct for the stack
-typedef struct numbers {
-  stack_t *s;
-  int len;
-  int ones_sum[NUM_BITS];
-} numbers_t;
+// Helper struct to hold boards
+typedef struct board {
+  int pos[BOARD_ROWS][BOARD_COLS];
+  int num[MAX_NUM];
+  int sum;
+} board_t;
 
-void stack_append(stack_t **s, char *b) {
+void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
   t->prev = NULL;
   t->next = *s;
-  t->bin = (char *)malloc((NUM_BITS+1)*sizeof(*b));
-  for(int i=0; i<NUM_BITS; i++) 
-    t->bin[i] = '0';
-  strcpy(t->bin, b);
+  t->value = v;
   if(*s != NULL) (*s)->prev = t;
   *s = t;
   return;
 }
 
+void stack_pop(stack_t **h, stack_t *s) {
+  if(s->next != NULL) s->next->prev = s->prev;
+  if(s->prev != NULL) s->prev->next = s->next;
+  if(s->value != NULL) free(s->value);
+  if(*h == s) *h = s->next;
+  free(s);
+}
+
+
 void stack_free(stack_t **s) {
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    free(t->bin);
+    if(t->value != NULL) free(t->value);
     free(t);
   }
 }
 
-void numbers_filter(numbers_t **n, int i, int reverse) {
-  stack_t *t = (*n)->s;
-  char c = 2*(*n)->ones_sum[i] >= (*n)->len ? '1' : '0';
-  if(reverse) {
-    c = c == '1' ? '0' : '1';
+void nums_add(stack_t **s, int n) {
+  int *p = (int *)malloc(sizeof(*p));
+  *p = n;
+  stack_append(s, (void *)p);
+}
+
+void board_add(stack_t **s) {
+  board_t *b = (board_t *)malloc(sizeof(*b));
+  b->sum = 0;
+  for(int i=0; i<BOARD_ROWS; i++) {
+    for(int j=0; j<BOARD_COLS; j++)
+      b->pos[i][j] = -1;
   }
-  while(t != NULL) {
-    stack_t *a = t->next;
-    // If current bit did not match filter, remove it
-    if(t->bin[i] != c) {
-      for(int j=i; j<NUM_BITS; j++)
-        if(t->bin[j] == '1') (*n)->ones_sum[j]--;
-      (*n)->len--;
-      if(t->prev != NULL) t->prev->next = t->next;
-      if(t->next != NULL) t->next->prev = t->prev;
-      if((*n)->s == t) (*n)->s = t->next;
-      free(t->bin);
-      free(t);
+  for(int i=0; i<MAX_NUM; i++) b->num[i] = -1;
+  stack_append(s, (void *)b);
+}
+
+int board_mark(board_t *b, int n) {
+  // This board doesn't have this number
+  if(b->num[n] < 0) return 0;
+
+  int x = b->num[n];
+  int i = x / BOARD_ROWS;
+  int j = (x - i*BOARD_ROWS) % BOARD_COLS;
+  
+  // Already marked
+  if(b->pos[i][j] < 0) return 0;
+  
+  b->sum -= n;
+  b->pos[i][j] = -1;
+
+  return 1;
+}
+
+int board_check(board_t *b, int n) {
+  // This board doesn't have this number
+  if(b->num[n] < 0) return 0;
+
+  int res;
+  
+  int x = b->num[n];
+  int row = x / BOARD_ROWS;
+  int col = (x - row*BOARD_ROWS) % BOARD_COLS;
+  
+  // Check vertical bingo
+  res = 1;
+  for(int i=0; i<BOARD_ROWS; i++) {
+    if(b->pos[i][col] >= 0) {
+      res = 0;
+      break;
     }
-    t = a;
   }
+  if(res) return res;
+  
+  // Check horizontal bingo
+  res = 1;
+  for(int j=0; j<BOARD_COLS; j++) {
+    if(b->pos[row][j] >= 0) {
+      res = 0;
+      break;
+    }
+  }
+  return res;
 }
-
-void numbers_init(numbers_t **n) {
-  numbers_t *t = (numbers_t *)malloc(sizeof(*t));
-  t->s = NULL;
-  t->len = 0;
-  for(int i=0; i<NUM_BITS; i++)
-    t->ones_sum[i] = 0;
-  *n = t;
-}
-
-void numbers_free(numbers_t **n) {
-  if(*n == NULL) return;
-  stack_free(&((*n)->s));
-  free(*n);
-  *n = NULL;
-}
-
-static char *FORMAT_READ=" %%%ds";
 
 int main() {
-  char buff[NUM_BITS+1];
-  char format[strlen(FORMAT_READ) + ((NUM_BITS+1)/10)];
+  int n;
+  char c;
   
-  numbers_t *oxy_nums = NULL;
-  numbers_t *co2_nums = NULL;
+  stack_t *nums = NULL;
+  stack_t *first = NULL;
   
-  unsigned long oxygen, carbon, mask;
-  char *endp = NULL;
-  
-  for(int i=0; i<NUM_BITS; i++) 
-    buff[i] = '0';
-  
-  numbers_init(&oxy_nums);
-  numbers_init(&co2_nums);
-  
-  sprintf(format, FORMAT_READ, NUM_BITS);
-  while(fscanf(stdin, format, buff) > 0) {
-    oxy_nums->len++;
-    co2_nums->len++;
-    for(int i=0; i<NUM_BITS; i++) {
-      if(buff[i] == '1') {
-        oxy_nums->ones_sum[i]++;
-        co2_nums->ones_sum[i]++;
-      }
-    }
-    stack_append(&(oxy_nums->s), buff);
-    stack_append(&(co2_nums->s), buff);
+  // Read until first non-comma
+  while(fscanf(stdin, " %d%c", &n, &c) > 0) {
+    nums_add(&nums, n);
+    if(first == NULL) first = nums;
+    if(c != ',') break;
   }
+
+  int ndigits = 0;
+  for(int i = MAX_NUM; i > 0; i/=10) ndigits++;
   
-  for(int i=0; i<NUM_BITS; i++) {
-    // Not supposed to happen
-    if(oxy_nums->s == NULL || co2_nums->s == NULL) {
-      printf("[!] Error: No numbers left\n");
-      return -1;
+  int nboards = 0;
+  int nrow = 0;
+  int nbytes = 0;
+  char buf[BOARD_COLS * (ndigits+1)];
+  stack_t *boards = NULL;
+  board_t *cur_board = NULL;
+  
+  // Read until no more boards
+  while(fgets(buf, sizeof(buf), stdin) > 0) {
+    if(buf[0] == '\n') continue;
+    
+    if(nrow == 0) {
+      // Add new board
+      board_add(&boards);
+      cur_board = (board_t *)(boards->value);
+      nboards++;
     }
     
-    // Stop if both only have one number left
-    if(oxy_nums->s->next == NULL && co2_nums->s->next == NULL) break;
+    char *s = buf;
+    for(int j=0; j<BOARD_COLS; j++) {
+      sscanf(s, " %d%n", &n, &nbytes);
+      cur_board->pos[nrow][j] = n;
+      cur_board->sum += n;
+      cur_board->num[n] = (nrow*BOARD_ROWS) + j;
+      s += nbytes;
+    }
+    nrow++;
+    if(nrow >= BOARD_ROWS) nrow = 0;
+  }
+  
+  
+  stack_t *t = first;
+  while(t != NULL) {
+    n = *((int*)t->value);
     
-    // Filter currently lists if they have more than one number
-    if(oxy_nums->s->next != NULL) numbers_filter(&oxy_nums, i, 0);
-    if(co2_nums->s->next != NULL) numbers_filter(&co2_nums, i, 1);
+    stack_t *b = boards;
+    while(b != NULL) {
+      stack_t *v = b;
+      cur_board = (board_t *)b->value;
+      b = b->next;
+      // If number wasn't marked, continue
+      if(!board_mark(cur_board, n)) continue;
+      
+      // If board didn't bingo, continue
+      if(!board_check(cur_board, n)) continue;
+      
+      // Board cleared
+      nboards--;
+      if(nboards == 0) break;
+      
+      // Delete completed board
+      stack_pop(&boards, v);
+    }
+    if(nboards == 0) break;
+
+    // Reverse order
+    t = t->prev;
   }
   
-  // atoi doesnt support binary
-  oxygen = strtoul(oxy_nums->s->bin, &endp, 2);
-  if(endp == NULL || *endp != '\0') {
-    printf("[!] Error, invalid binary\n");
-    return -1;
-  }
-  carbon = strtoul(co2_nums->s->bin, &endp, 2);
-  if(endp == NULL || *endp != '\0') {
-    printf("[!] Error, invalid binary\n");
-    return -1;
-  }
+  printf("Last BINGO at %d! Sum * n=%d\n", n, cur_board->sum *n);
   
-  // Bitwise shaenigans
-  mask = (1 << NUM_BITS) - 1;
-  oxygen &= mask;
-  carbon &= mask;
-  printf("oxygen = %lu, carbon =%lu, total=%lu\n", oxygen, carbon, oxygen*carbon);
-  
-  
-  numbers_free(&oxy_nums);
-  numbers_free(&co2_nums);
+  stack_free(&nums);
+  stack_free(&boards);
   return 0;
 }

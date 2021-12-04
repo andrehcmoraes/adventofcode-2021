@@ -45,10 +45,12 @@ int main() {
 
   // Make scanf read a fixed size string %s and %d
   // Need to build a format string separately first
+  int ndigits = 0;
+  for(int i = MAX_MOVE_LEN+1; i > 0; i/=10) ndigits++;
+  printf("%d\n", ndigits);
   char buff[MAX_MOVE_LEN+1];
-  char format[strlen(FORMAT_READ) + ((MAX_MOVE_LEN+1)/10)];
+  char format[strlen(FORMAT_READ) + ndigits];
   sprintf(format, FORMAT_READ, MAX_MOVE_LEN+1);
-  printf("Max len:%u\n", MAX_MOVE_LEN);
   
   while(fscanf(stdin, format, buff, &delta) > 0) {
     if(STR_EQL(buff, MOVE_STRING[forward])) {

@@ -118,12 +118,12 @@ int main() {
   char c;
   
   stack_t *nums = NULL;
-  stack_t *first = NULL;
+  stack_t *tail = NULL;
   
-  // Read until first non-comma
+  // Read until tail non-comma
   while(fscanf(stdin, " %d%c", &n, &c) > 0) {
     nums_add(&nums, n);
-    if(first == NULL) first = nums;
+    if(tail == NULL) tail = nums;
     if(c != ',') break;
   }
 
@@ -161,7 +161,7 @@ int main() {
   }
   
   
-  stack_t *t = first;
+  stack_t *t = tail;
   while(t != NULL) {
     n = *((int*)t->value);
     

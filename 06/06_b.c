@@ -5,14 +5,14 @@
 #define NUM_DAYS 256
 #define TIMER_DELAY 2
 #define TIMER_PERIOD 6
-#define TIMER_TOTAL TIMER_PERIOD+TIMER_DELAY+1
 
 int main() {
   
   unsigned long long sum, aux;
   
-  unsigned long long timers[TIMER_TOTAL];
-  for(int i=0; i<TIMER_TOTAL; i++)
+  unsigned long long timers[NUM_DAYS];
+  
+  for(int i=0; i<NUM_DAYS; i++)
     timers[i] = 0;
   
   // Read until tail non-comma
@@ -27,13 +27,14 @@ int main() {
 
   
   for(int i=0; i<NUM_DAYS; i++) {
-    unsigned long long births = timers[0];
+    if(timers[i] == 0) continue;
     
-    for(int j=0; j<TIMER_TOTAL-1; j++) 
-      timers[j] = timers[j+1];
+    unsigned long long births = timers[i];
+    n = i + TIMER_PERIOD+1;
+    if(n < NUM_DAYS) timers[n] += timers[i];
+    n = i + TIMER_DELAY + TIMER_PERIOD+1;
+    if(n < NUM_DAYS) timers[n] += timers[i];
     
-    timers[TIMER_PERIOD+TIMER_DELAY] = births;
-    timers[TIMER_PERIOD] += births;
     aux = sum;
     sum += births;
     

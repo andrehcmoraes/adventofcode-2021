@@ -9,9 +9,9 @@
 
 int main() {
   
-  unsigned long sum;
+  unsigned long long sum, aux;
   
-  unsigned long timers[TIMER_TOTAL];
+  unsigned long long timers[TIMER_TOTAL];
   for(int i=0; i<TIMER_TOTAL; i++)
     timers[i] = 0;
   
@@ -34,11 +34,17 @@ int main() {
     
     timers[TIMER_PERIOD+TIMER_DELAY] = births;
     timers[TIMER_PERIOD] += births;
+    aux = sum;
     sum += births;
     
+    // Hopefully won't ever happen...
+    if(sum < aux) {
+      printf("[!] OVERFLOW DETECTED!!!\nTime for BIGNUM :( \n");
+      return -1;
+    }
   }
   
-  printf("Fish at %d days: %lu\n", NUM_DAYS, sum);
+  printf("Fish at %d days: %llu\n", NUM_DAYS, sum);
   
   return 0;
 }

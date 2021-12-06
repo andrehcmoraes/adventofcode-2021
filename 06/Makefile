@@ -21,5 +21,10 @@ test_a: ${MAIN_A}
 test_b: ${MAIN_B}
 	valgrind ./${MAIN_B} < input.txt
 
+test_bn:
+	${CC} -DUSE_BIG_ENUM ${CFLAGS} ${MAIN_B}.c -o ${MAIN_B}  -lssl -lcrypto
+	valgrind --leak-check=full ./${MAIN_B} < input.txt 
+	make clean
+
 all: test_a test_b 
 	make clean

@@ -47,7 +47,7 @@ int main() {
   // Need to build a format string separately first
   int ndigits = 0;
   for(int i = MAX_MOVE_LEN+1; i > 0; i/=10) ndigits++;
-  printf("%d\n", ndigits);
+  
   char buff[MAX_MOVE_LEN+1];
   char format[strlen(FORMAT_READ) + ndigits];
   sprintf(format, FORMAT_READ, MAX_MOVE_LEN+1);

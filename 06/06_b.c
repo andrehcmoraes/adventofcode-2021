@@ -8,7 +8,7 @@
 #ifdef USE_BIG_ENUM
   // Requires OPENSSL - install libssl-dev
   // Compile with
-  // make test_bn
+  // make day06_bn
   #include <openssl/bn.h>
   #define ADD_BIGNUM(a,b) BN_add(a,a,b);
   #define INI_BIGNUM(a) { a =  BN_new(); BN_zero(a); }

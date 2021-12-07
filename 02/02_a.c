@@ -49,7 +49,6 @@ int main() {
   char buff[MAX_MOVE_LEN+1];
   char format[strlen(FORMAT_READ) + ((MAX_MOVE_LEN+1)/10)];
   sprintf(format, FORMAT_READ, MAX_MOVE_LEN+1);
-  printf("Format string:%s\n", format);
   
   while(fscanf(stdin, format, buff, &delta) > 0) {
     if(STR_EQL(buff, MOVE_STRING[forward]))

@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-#define MAX_POS 2000
+#define BREAK_OR_ASSIGN(a,b,r) { if(r) break; a = b; }
 
 typedef struct stack {
   int pos;
@@ -48,53 +48,65 @@ int main() {
 
   int n;
   char c;
-  int cnt = 0;
+  int crab_len = 0;
   while(fscanf(stdin, " %d%c", &n, &c) > 0) {
-    cnt++;
+    crab_len++;
     stack_append(&crb, n);
   }
-  int *crabs = (int *)malloc(cnt * sizeof(*crabs));
+  int *crabs = (int *)malloc(crab_len * sizeof(*crabs));
   stack_dump(&crb, crabs);
 
   // Sort the crabs
-  qsort(crabs, cnt, sizeof(*crabs), crab_cmb);
+  qsort(crabs, crab_len, sizeof(*crabs), crab_cmb);
   
-  
-  // While progressing through the sorted vector, 
-  // solution will gradually improve as we come closer to the ideal solution
-  // Then, it will gradually worsen the further away we go from it
-  
-  // Basically, find the interval between the crabs where the turning point is,
-  // The first time where the solution worsens
-  
-  // Binary search could improve this
+  // Find the global minimum
   int x = 0;
-  unsigned long fuel = crab_fuel(crabs[0], crabs, cnt);
-  for(x=1; x<cnt; x++) {
+  unsigned long fuel = crab_fuel(crabs[0], crabs, crab_len);
+  for(x=0; x<crab_len; x++) {
     // Skip crabs at same pos
-    if(x<cnt-1) if(crabs[x] == crabs[x+1]) continue;
+    if(x<crab_len-1) if(crabs[x] == crabs[x+1]) continue;
     
-    unsigned long f = crab_fuel(crabs[x], crabs, cnt);
-    
-    if(f > fuel) break;
-    fuel = f;
+    unsigned long f = crab_fuel(crabs[x], crabs, crab_len);
+    BREAK_OR_ASSIGN(fuel, f, f>fuel);
   }
   
-  // Solution will be between the two crabs where the turning point happened
   int x1, x2;
   x1 = x > 1 ? x - 1 : x;
   x2 = x;
   
-  // Now iterate position by position 
-  // Binary search could improve this
-  fuel = crab_fuel(crabs[x1], crabs, cnt);
+  fuel = crab_fuel(crabs[x1], crabs, crab_len);
   for(int p=crabs[x1]; p<crabs[x2]; p++) {
-    unsigned long f = crab_fuel(p, crabs, cnt);
-    
-    if(f > fuel) break;
-    fuel = f;
+    unsigned long f = crab_fuel(p, crabs, crab_len);
+    BREAK_OR_ASSIGN(fuel, f, f>fuel);
   }
 
+  // Binary search... ish
+  unsigned long f1, f2;
+  int new_f1 = 1;
+  int new_f2 = 1;
+  x1 = crabs[x1];
+  x2 = crabs[x2];
+
+  while( x1 != x2 ) {
+    if(new_f1) f1 = crab_fuel(x1, crabs, crab_len);
+    if(new_f2) f2 = crab_fuel(x2, crabs, crab_len);
+    
+    int x3 = (x1+x2)/2;
+    if(f1 > f2) {
+      new_f1 = 1;
+      new_f2 = 0;
+      fuel = f2;
+      
+      BREAK_OR_ASSIGN(x1, x3, x1==x3);
+    } else {
+      new_f1 = 0;
+      new_f2 = 1;
+      fuel = f1;
+      
+      BREAK_OR_ASSIGN(x2, x3, x2==x3);
+    }
+  }
+  
   printf("Best fuel: %lu\n", fuel);
   free(crabs);
   return 0;

@@ -1,8 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-#define MAX_POS 2000
-
 typedef struct stack {
   int pos;
   struct stack *next;
@@ -47,33 +45,32 @@ int main() {
 
   int n;
   char c;
-  int cnt = 0;
+  int crab_len = 0;
   while(fscanf(stdin, " %d%c", &n, &c) > 0) {
-    cnt++;
+    crab_len++;
     stack_append(&crb, n);
   }
-  int *crabs = (int *)malloc(cnt * sizeof(*crabs));
+  int *crabs = (int *)malloc(crab_len * sizeof(*crabs));
   stack_dump(&crb, crabs);
 
   // Sort the crabs
-  qsort(crabs, cnt, sizeof(*crabs), crab_cmb);
+  qsort(crabs, crab_len, sizeof(*crabs), crab_cmb);
   
   
   // While progressing through the sorted vector, 
   // solution will gradually improve as we come closer to the ideal solution
   // Then, it will gradually worsen the further away we go from it
   
-  // Basically, find the interval between the crabs where the turning point is,
+  // Find the interval between the crabs where the turning point is,
   // The first time where the solution worsens
   
-  // Binary search could improve this
   int x = 0;
-  unsigned long fuel = crab_fuel(crabs[0], crabs, cnt);
-  for(x=1; x<cnt; x++) {
+  unsigned long fuel = crab_fuel(crabs[0], crabs, crab_len);
+  for(x=0; x<crab_len; x++) {
     // Skip crabs at same pos
-    if(x<cnt-1) if(crabs[x] == crabs[x+1]) continue;
+    if(x<crab_len-1) if(crabs[x] == crabs[x+1]) continue;
     
-    unsigned long f = crab_fuel(crabs[x], crabs, cnt);
+    unsigned long f = crab_fuel(crabs[x], crabs, crab_len);
     if(f > fuel) break;
     fuel = f;
   }
@@ -85,9 +82,9 @@ int main() {
   
   // Now iterate position by position 
   // Binary search could improve this
-  fuel = crab_fuel(crabs[x1], crabs, cnt);
+  fuel = crab_fuel(crabs[x1], crabs, crab_len);
   for(int p=crabs[x1]; p<crabs[x2]; p++) {
-    unsigned long f = crab_fuel(p, crabs, cnt);
+    unsigned long f = crab_fuel(p, crabs, crab_len);
     
     if(f > fuel) break;
     fuel = f;

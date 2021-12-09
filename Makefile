@@ -3,6 +3,8 @@
 
 SHELL = /bin/bash
 CFLAGS = -Wall -g -std=c11
+DFLAGS = -g
+SFLAGS= -O4
 CC = gcc
 
 # Generate rules for each day
@@ -17,10 +19,15 @@ day%_bn:
 	./$*_b.bin < $*/input.txt
 	@$(MAKE) clean > /dev/null
 
+# Debug
+%.debug:
+	${CC} ${INC_FLAGS} ${CFLAGS} ${DFLAGS} $*/$*_a.c -o $*_a.bin
+	${CC} ${INC_FLAGS} ${CFLAGS} ${DFLAGS} $*/$*_b.c -o $*_b.bin
 
+# Fast
 %.out:
-	@${CC} ${INC_FLAGS} ${CFLAGS} $*/$*_a.c -o $*_a.bin
-	@${CC} ${INC_FLAGS} ${CFLAGS} $*/$*_b.c -o $*_b.bin
+	${CC} ${INC_FLAGS} ${CFLAGS} ${SFLAGS} $*/$*_a.c -o $*_a.bin
+	${CC} ${INC_FLAGS} ${CFLAGS} ${SFLAGS} $*/$*_b.c -o $*_b.bin
 
 # Make and run
 day%: %.out
@@ -32,7 +39,7 @@ day%: %.out
 	@$(MAKE) clean > /dev/null
 
 # Debug test samples
-test%: %.out
+test%: %.debug
 	@echo "Debug $* Part One"
 	valgrind ./$*_a.bin < $*/test.txt
 	@echo ""
@@ -41,7 +48,7 @@ test%: %.out
 	@$(MAKE) clean > /dev/null
 
 # Debug full input
-debug%: %.out
+debug%: %.debug
 	@echo "Debug $* Part One"
 	valgrind ./$*_a.bin < $*/input.txt
 	@echo ""

@@ -15,35 +15,6 @@
 
 #define MISSINGPENALTY 5
 
-typedef struct stack {
-  char c;
-  struct stack *next;
-} stack_t;
-
-void stack_append(stack_t **s, char c) {
-  stack_t *t = (stack_t *)malloc(sizeof(*t));
-  t->next = *s;
-  t->c = c;
-  *s = t;
-  return;
-}
-
-char stack_pop(stack_t **s) {
-  stack_t *t = *s;
-  *s = (*s)->next;
-  char c = t->c;
-  free(t);
-  return c;
-}
-
-void stack_free(stack_t **s) {
-  while(*s != NULL) {
-    stack_t *t = *s;
-    *s = (*s)->next;
-    free(t);
-  }
-}
-
 int match_chunk(char a, char b) {
   switch(b) {
     case ')': RETIFCND((a != '('), 1);
@@ -54,10 +25,10 @@ int match_chunk(char a, char b) {
   return 0;
 }
 
-unsigned long long complete_chunk(stack_t **s) {
+unsigned long long complete_chunk(char *s, int s_len) {
   unsigned long long val = 0;
-  while(*s != NULL) {
-    char c = stack_pop(s);
+  while(s_len > 0) {
+    char c = s[--s_len];
     unsigned long long delta = 0;
     switch(c) {
       case '(': SETANDBR(delta, PARENTHESISVAL);
@@ -82,9 +53,9 @@ int miss_cmb(const void *a, const void *b) {
 
 int main() {
   char buff[MAX_LINE];
+  char chunks[MAX_LINE];
   unsigned long long misses[MAX_LINE];
   
-  stack_t *chunks = NULL;
   for(int i=0; i<MAX_LINE; i++)
     misses[i] = 0;
 
@@ -93,16 +64,16 @@ int main() {
     long int len = strlen(buff);
     int corrupt = 0;
     
-    stack_free(&chunks);
+    int s_len = 0;
     for(int i=0; i<len; i++) {
       char c = buff[i];
       // Stack left side characters
       if( ISLEFT(c) ) {
-        stack_append(&chunks, c);
+        chunks[s_len++] = c;
         continue;
       }
       // Pop last and compare
-      char d = stack_pop(&chunks);
+      char d = chunks[--s_len];
       corrupt = match_chunk(d,c);
       if(corrupt) break;
     }
@@ -110,7 +81,7 @@ int main() {
     if(corrupt) continue;
 
     // Complete missing
-    misses[miss_len++] = complete_chunk(&chunks);
+    misses[miss_len++] = complete_chunk(chunks, s_len);
   }
   
     // Sort the lines with missing chunks
@@ -118,6 +89,5 @@ int main() {
 
   printf("Middle score of missing lines: %llu\n", misses[miss_len/2]);
   
-  stack_free(&chunks);
   return 0;
 }

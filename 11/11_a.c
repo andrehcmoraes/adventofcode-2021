@@ -2,12 +2,10 @@
 #include<stdlib.h>
 #include<string.h>
 
-#define MAX_COLS 10
-#define MAX_ROWS 10
+#define MAX_COLS 1000
+#define MAX_ROWS 1000
 
 #define FLASH_LIMIT 9
-
-#define NUM_DUMBOS (MAX_COLS * MAX_ROWS)
 #define NUM_STEPS 100
 
 

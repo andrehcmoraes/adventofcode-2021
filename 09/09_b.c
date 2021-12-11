@@ -71,7 +71,7 @@ int main() {
     }
   }
     
-  long long unsigned sum = 1;
+  unsigned long long sum = 1;
   for(int i=0; i<NUM_BASINS; i++)
     sum = sum * basins[i];
   printf("Sum of top %d basins: %llu\n", NUM_BASINS, sum);

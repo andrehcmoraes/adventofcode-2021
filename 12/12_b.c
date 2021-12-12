@@ -9,10 +9,10 @@
 #define START_NODE "start"
 #define END_NODE "end"
 
+#define MAX_NODES 50
+
 #define MAX_SMALL 1
 #define MAX_SMALL_MULTIPLE 2
-
-#define MAX_NODES 50
 
 // Generic stack
 typedef struct stack {
@@ -127,14 +127,15 @@ void dict_free(dict_t **d) {
 // Struct to hold path
 typedef struct path {
   int current, small_exce;
-  int visited[MAX_NODES];
+  int *visited;
 } path_t;
 
-void path_append(stack_t **t, int c, int s, int *v) {
+void path_append(stack_t **t, int c, int s, int *v, int n) {
   path_t *p = (path_t *)malloc(sizeof(*p));
   p->current = c;
 
-  for(int j=0; j<MAX_NODES; j++)
+  p->visited = (int *) malloc(n * sizeof(*(p->visited)));
+  for(int j=0; j<n; j++)
     p->visited[j] = v[j]; 
   p->visited[c]++;
   
@@ -142,7 +143,7 @@ void path_append(stack_t **t, int c, int s, int *v) {
   stack_append(t, (void *)p);
 }
 
-void path_pop(stack_t **t, int *c, int *s, int *v) {
+void path_pop(stack_t **t, int *c, int *s, int *v, int n) {
   stack_t *x = *t;
   path_t *p = (path_t *)x->v;
   *t = x->next;
@@ -150,30 +151,31 @@ void path_pop(stack_t **t, int *c, int *s, int *v) {
   *c = p->current;
   *s = p->small_exce;
   
-  for(int j=0; j<MAX_NODES; j++)
+  for(int j=0; j<n; j++)
     v[j] = p->visited[j]; 
 
-  free(x->v);
+  free(p->visited);
+  free(p);
   free(x);
 }
 
-unsigned long long find_paths(stack_t **adj, int nstart, int nend) {
+unsigned long long find_paths(stack_t **adj, int num_nodes, int nstart, int nend) {
   unsigned long long sum;
   int current, small_exce;
-  int visited[MAX_NODES];
+  int visited[num_nodes];
 
-  for(int j=0;j<MAX_NODES;j++)
+  for(int j=0;j<num_nodes;j++)
     visited[j] = 0;
 
   // Stack start
   stack_t *paths = NULL;
-  path_append(&paths, nstart, -1, visited);
+  path_append(&paths, nstart, -1, visited, num_nodes);
 
   sum = 0;
   while(paths != NULL) {
     
     // Pop stack
-    path_pop(&paths, &current, &small_exce, visited);
+    path_pop(&paths, &current, &small_exce, visited, num_nodes);
     
     // Reached the end
     if(current == nend) {
@@ -205,7 +207,7 @@ unsigned long long find_paths(stack_t **adj, int nstart, int nend) {
       }
       
       // Queue next node
-      path_append(&paths, v->index, exception, visited);
+      path_append(&paths, v->index, exception, visited, num_nodes);
     }
   }
   // Just to be sure
@@ -271,7 +273,7 @@ int main() {
   node_t *nend = dict_get(dict, END_NODE, strlen(END_NODE));
 
   // Make paths
-  unsigned long long sum = find_paths(adj, nstart->index, nend->index);
+  unsigned long long sum = find_paths(adj, n, nstart->index, nend->index);
   printf("Total paths found:%llu\n", sum);
   
   free(buff);

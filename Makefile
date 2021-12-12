@@ -41,19 +41,19 @@ day%: %.out
 # Debug test samples
 test%: %.debug
 	@echo "Debug $* Part One"
-	valgrind ./$*_a.bin < $*/test.txt
+	valgrind --leak-check=full ./$*_a.bin < $*/test.txt
 	@echo ""
 	@echo "Debug $* Part Two"
-	valgrind ./$*_b.bin < $*/test.txt
+	valgrind --leak-check=full ./$*_b.bin < $*/test.txt
 	@$(MAKE) clean > /dev/null
 
 # Debug full input
 debug%: %.debug
 	@echo "Debug $* Part One"
-	valgrind ./$*_a.bin < $*/input.txt
+	valgrind --leak-check=full ./$*_a.bin < $*/input.txt
 	@echo ""
 	@echo "Debug $* Part Two"
-	valgrind ./$*_b.bin < $*/input.txt
+	valgrind --leak-check=full ./$*_b.bin < $*/input.txt
 	@$(MAKE) clean > /dev/null
 
 # Time execution

@@ -44,6 +44,7 @@ void points_append(stack_t **s, unsigned long long x, unsigned long long y) {
   stack_append(s, (void *)p);
 }
 
+// Really should put points in a set so this can run faster
 point_t *points_find(stack_t *s, unsigned long long x, unsigned long long y) {
   while(s != NULL) {
     point_t *p = (point_t *) s->val;
@@ -106,7 +107,6 @@ int main() {
     len_y = len_y < y ? y : len_y;
     points_append(&points, x, y);
   }
-  // Actual lengths are not the same as largest point
   len_y++;
   len_x++;
   
@@ -141,7 +141,7 @@ int main() {
   
   for(unsigned long long y=0; y<len_y; y++) {
     for(unsigned long long x=0; x<len_x; x++) {
-      printf("%c", grid[y][x] ? '#' : '.');
+      printf("%c", grid[y][x] ? '#' : ' ');
     }
     printf("\n");
   }

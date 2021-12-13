@@ -124,95 +124,34 @@ void dict_free(dict_t **d) {
   *d = NULL;
 }
 
-// Struct to hold path
-typedef struct path {
-  int current, small_exce;
-  int *visited;
-} path_t;
-
-void path_append(stack_t **t, int c, int s, int *v, int n) {
-  path_t *p = (path_t *)malloc(sizeof(*p));
-  p->current = c;
-
-  p->visited = (int *) malloc(n * sizeof(*(p->visited)));
-  for(int j=0; j<n; j++)
-    p->visited[j] = v[j]; 
-  p->visited[c]++;
-  
-  p->small_exce = s;
-  stack_append(t, (void *)p);
-}
-
-void path_pop(stack_t **t, int *c, int *s, int *v, int n) {
-  stack_t *x = *t;
-  path_t *p = (path_t *)x->v;
-  *t = x->next;
-  
-  *c = p->current;
-  *s = p->small_exce;
-  
-  for(int j=0; j<n; j++)
-    v[j] = p->visited[j]; 
-
-  free(p->visited);
-  free(p);
-  free(x);
-}
-
-unsigned long long find_paths(stack_t **adj, int num_nodes, int nstart, int nend) {
+// Recursive DFS solves the path queueing problem
+unsigned long long find_paths(stack_t **adj, int *visited, int num_nodes, int current, int nstart, int nend, int small_exce) {
   unsigned long long sum;
-  int current, small_exce;
-  int visited[num_nodes];
-
-  for(int j=0;j<num_nodes;j++)
-    visited[j] = 0;
-
-  // Stack start
-  stack_t *paths = NULL;
-  path_append(&paths, nstart, -1, visited, num_nodes);
-
-  sum = 0;
-  while(paths != NULL) {
-    
-    // Pop stack
-    path_pop(&paths, &current, &small_exce, visited, num_nodes);
-    
-    // Reached the end
-    if(current == nend) {
-      sum++;
-      continue;
-    }
-
-    stack_t *t = adj[current];
-    while(t!=NULL) {
-      node_t *v = (node_t *)t->v;
-      t = t->next;
-      
-      // Don't requeue start
-      if(v->index == nstart) continue;
-      
-      int exception = small_exce;
-      // Check visited if target node is small and is not endnode
-      if(v->index != nend && v->small && visited[v->index] >= MAX_SMALL) {
-        // Current path hasn't used extra path yet
-        if(small_exce < 0) {
-          exception = v->index;
-        } else {
-          // Skip if exception was already used and it is not this node
-          if(small_exce != v->index) continue;
-
-          // Exception was used on this node, but visits exceeded limits
-          if(visited[v->index] >= MAX_SMALL_MULTIPLE) continue;
-        }
-      }
-      
-      // Queue next node
-      path_append(&paths, v->index, exception, visited, num_nodes);
-    }
-  }
-  // Just to be sure
-  stack_free(&paths);
   
+  if(current == nend) return 1;
+  
+  sum = 0;
+  visited[current] = 1;
+  stack_t *t = adj[current];
+  while(t!=NULL) {
+    node_t *v = (node_t *)t->v;
+    t = t->next;
+    
+    // Don't requeue start
+    if(v->index == nstart) continue;
+    
+    // Check visited if target node is small and is not endnode
+    if(v->index != nend && v->small && visited[v->index] >= MAX_SMALL) {
+      if(small_exce) continue;
+
+      visited[v->index] = 0;
+      sum += find_paths(adj, visited, num_nodes, v->index, nstart, nend, 1);
+      visited[v->index] = 1;
+    } else
+      sum += find_paths(adj, visited, num_nodes, v->index, nstart, nend, small_exce);
+  }
+  
+  visited[current] = 0;
   return sum;
 }
 
@@ -273,7 +212,11 @@ int main() {
   node_t *nend = dict_get(dict, END_NODE, strlen(END_NODE));
 
   // Make paths
-  unsigned long long sum = find_paths(adj, n, nstart->index, nend->index);
+  int *visited = (int *)malloc(n * sizeof(*visited));
+  for(int i=0; i<n; i++)
+    visited[i] = 0;
+  
+  unsigned long long sum = find_paths(adj, visited, n, nstart->index, nstart->index, nend->index, 0);
   printf("Total paths found:%llu\n", sum);
   
   free(buff);
@@ -282,6 +225,7 @@ int main() {
   for(int i=0; i<MAX_NODES; i++)
     stack_free(&(adj[i]));
   free(adj);
+  free(visited);
   dict_free(&dict);
 
   return 0;

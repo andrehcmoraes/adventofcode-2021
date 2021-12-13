@@ -90,7 +90,6 @@ int main() {
     len_y = len_y < y ? y : len_y;
     points_append(&points, x, y);
   }
-  // Actual lengths are not the same as largest point
   len_y++;
   len_x++;
 

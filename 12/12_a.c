@@ -155,6 +155,8 @@ void path_pop(stack_t **t, int *c, int *v, int n) {
   free(x);
 }
 
+// While a explicit DFS stack can recover the paths just the same, it is harder
+// to keep track of the path - must queue entire path so far for each node
 unsigned long long find_paths(stack_t **adj, int num_nodes, int nstart, int nend) {
   unsigned long long sum;
   int visited[num_nodes];

@@ -125,22 +125,28 @@ node_dict_t *dict_get(dict_t *d, void *key) {
   return NULL;
 }
 
+void dict_del(dict_t *d, void *key) {
+  node_dict_t *e = (node_dict_t *) dict_get(d, key);
+  if(e == NULL)
+    return;
+  
+  unsigned int h = d->hash(key);
+  h = h % d->size;
+
+  if(e->value) free(e->value);
+  stack_pop(&(d->keys), e->key_pos);
+  stack_pop(&(d->pairs[h]), e->self);
+  d->len--;
+}
+
+// Make sure 'key' and 'val' are pointers to dynamic allocated blocks
+// And not to reuse their pointers later, since they could be deleted
 void dict_set(dict_t *d, void *key, void *val) {
   node_dict_t *e = (node_dict_t *) dict_get(d, key);
-  if(e != NULL) {
-    if(e->value) free(e->value);
-    if(e->key) free(e->key);
-    e->value = val;
-    e->key = key;
-    if(e->key_pos) {
-      stack_t *t =  e->key_pos;
-      if(t->val) free(t->val);
-      t->val = key;
-    }
-    e->key_pos = key;
-    
-    return;
-  }
+  // lmao
+  if(e != NULL)
+    dict_del(d, key);
+  
   
   unsigned int h = d->hash(key);
   h = h % d->size;
@@ -155,20 +161,6 @@ void dict_set(dict_t *d, void *key, void *val) {
   stack_append(&(d->pairs[h]), new_e);
   new_e->self = d->pairs[h];
   d->len++;
-}
-
-void dict_del(dict_t *d, void *key) {
-  node_dict_t *e = (node_dict_t *) dict_get(d, key);
-  if(e == NULL)
-    return;
-  
-  unsigned int h = d->hash(key);
-  h = h % d->size;
-
-  if(e->value) free(e->value);
-  stack_pop(&(d->keys), e->key_pos);
-  stack_pop(&(d->pairs[h]), e->self);
-  d->len--;
 }
 
 void dict_free(dict_t **d) {

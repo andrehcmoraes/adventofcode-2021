@@ -7,6 +7,10 @@ Leaderboard dos brothers - DanielSidhion
 
 Mostly in C or Python or w/e
 
+Part A solutions (silver star) are more naive.
+
+Part B solutions (gold stars) usually offers a more optimized approach.
+
 ## Compiling
 A Makefile is provided in order to compile the binaries for a single run
 

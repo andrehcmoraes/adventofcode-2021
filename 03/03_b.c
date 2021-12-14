@@ -25,7 +25,13 @@ void stack_append(stack_t **s, char *b) {
   for(int i=0; i<NUM_BITS; i++) 
     t->bin[i] = '0';
   strcpy(t->bin, b);
-  if(*s != NULL) (*s)->prev = t;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
   return;
 }

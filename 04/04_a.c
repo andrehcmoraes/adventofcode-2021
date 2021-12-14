@@ -25,7 +25,13 @@ void stack_append(stack_t **s, void *v) {
   t->prev = NULL;
   t->next = *s;
   t->value = v;
-  if(*s != NULL) (*s)->prev = t;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
   return;
 }

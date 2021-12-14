@@ -23,6 +23,7 @@ unsigned long long hash64shift(unsigned long long key) {
 }
 
 // Make sure (0,1) does not have the same hash as (1,0)
+// *Hash is not guaranteed to be unique for each point*
 unsigned long long point_hash(point_t *p) {
   return hash64shift(p->x) ^ p->y;
 }
@@ -62,7 +63,13 @@ void stack_append(stack_t **s, void *v) {
   t->next = *s;
   t->prev = NULL;
   t->val = v;
-  if(*s != NULL) (*s)->prev = t;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
 }
 

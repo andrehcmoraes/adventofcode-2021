@@ -25,14 +25,6 @@ void stack_append(stack_t **s, void *v) {
   *s = t;
 }
 
-void stack_pop(stack_t **h, stack_t *s) {
-  if(s->next != NULL) s->next->prev = s->prev;
-  if(s->prev != NULL) s->prev->next = s->next;
-  if(s->val  != NULL) free(s->val);
-  if(*h == s) *h = s->next;
-  free(s);
-}
-
 void stack_reverse(stack_t **s) {
   stack_t *t = *s;
   stack_t *tail = t;

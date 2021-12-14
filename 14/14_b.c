@@ -12,18 +12,6 @@ typedef struct rule {
   short in_a, in_b, gen;
 } rule_t;
 
-rule_t *new_rule(short a, short b, short c, unsigned long long i) {
-  rule_t *r = (rule_t *)malloc(sizeof(*r));
-  r->out_a = NULL;
-  r->out_b = NULL;
-  r->in_a = a;
-  r->in_b = b;
-  r->gen = c;
-  r->index = i;
-  r->count = 0;
-  return r;
-}
-
 // Double linked stack
 typedef struct stack {
   void *val;
@@ -45,19 +33,6 @@ void stack_append(stack_t **s, void *v) {
   *s = t;
 }
 
-void stack_reverse(stack_t **s) {
-  stack_t *t = *s;
-  stack_t *tail = t;
-  while(t != NULL) {
-    stack_t *x = t->next;
-    t->next = t->prev;
-    t->prev = x;
-    tail = t;
-    t = x;
-  }
-  *s = tail;
-}
-
 void stack_free(stack_t **s) {
   while(*s != NULL) {
     stack_t *t = *s;
@@ -67,40 +42,18 @@ void stack_free(stack_t **s) {
   }
 }
 
-void rule_build(stack_t *pol, rule_t ***grd, unsigned long long *elm) {
-  stack_t *t = pol;
-  while(t != NULL) {
-    stack_t *ta = t;
-    t = t->next;
-    stack_t *tb = t;
-
-    // Count current element
-    short a = *((short *)ta->val);
-    elm[a] += 1;
-    
-    // Break if no pair available
-    if(tb == NULL) break;
-    
-    // Increase the generator count for the current pair if it exists
-    short b = *((short *)tb->val);
-    rule_t *r = grd[a][b];
-    if(r != NULL) r->count += 1;
-  }
-  
-} 
-
-void rule_link(stack_t *rul, rule_t ***grd) {
+void rule_link(stack_t *rul, rule_t **grd) {
   stack_t *t = rul;
   while(t != NULL) {
-    rule_t *r = (rule_t *)t->val;
+    rule_t *r = *((rule_t **)t->val);
     t = t->next;
 
     short a = r->in_a;
     short b = r->in_b;
     short c = r->gen;
 
-    r->out_a = grd[a][c];
-    r->out_b = grd[c][b];
+    r->out_a = &(grd[a][c]);
+    r->out_b = &(grd[c][b]);
   }
   
 }
@@ -115,12 +68,12 @@ void rule_step(stack_t *rul, unsigned long long rlen, unsigned long long *elm, i
     // Reset previous delta
     stack_t *t = rul;
     while(t != NULL) {
-      rule_t *r = (rule_t *)t->val;
+      rule_t *r = *((rule_t **)t->val);
       t = t->next;
       
       // Skip if no generators for this rule
-      if(r->count == 0) continue;
-
+      if(r->count == 0 || r->gen < 0) continue;
+      
       // Increase element count by the number of current generators for this rule
       elm[r->gen] += r->count;
       
@@ -138,7 +91,7 @@ void rule_step(stack_t *rul, unsigned long long rlen, unsigned long long *elm, i
     // Iterate again, apply delta
     t = rul;
     while(t != NULL) {
-      rule_t *r = (rule_t *)t->val;
+      rule_t *r = *((rule_t **)t->val);
       t = t->next;
       r->count = delta[r->index];
       delta[r->index] = 0;
@@ -150,48 +103,61 @@ void rule_step(stack_t *rul, unsigned long long rlen, unsigned long long *elm, i
 
 
 int main() {
-  stack_t *poly, *rules;
+  stack_t *rules;
   unsigned long long rlen;
   unsigned long long *elems;
-  rule_t ***rules_grid;
+  rule_t **rules_grid;
   
-  rules_grid = (rule_t ***)malloc(NUM_ELEMS * sizeof(*rules));
+  rules_grid = (rule_t **)malloc(NUM_ELEMS * sizeof(*rules));
   elems = (unsigned long long *)malloc(NUM_ELEMS * sizeof(*elems));
   for(int i=0; i<NUM_ELEMS; i++) {
     elems[i] = 0;
-    rules_grid[i] = (rule_t **)malloc(NUM_ELEMS * sizeof(*(rules_grid[i])));
-    for(int j=0; j<NUM_ELEMS; j++)
-      rules_grid[i][j] = NULL;
+    rules_grid[i] = (rule_t *)malloc(NUM_ELEMS * sizeof(*(rules_grid[i])));
+    for(int j=0; j<NUM_ELEMS; j++) {
+      rules_grid[i][j].count = 0;
+      rules_grid[i][j].gen = -1;
+    }
   }
   
   // Read template
   char a,b,c;
-  poly = NULL;
-  while(scanf("%c", &c) > 0) {
-    if(c==' ' || c=='\t') continue;
-    if(c=='\n') break;
+  a = '\0';
+  while(scanf("%c", &b) > 0) {
+    if(b == ' ' || b == '\t') continue;
+    if(a == '\0') {
+      a = b;
+      continue;
+    }
     
-    short *v = (short *)malloc(sizeof(*v));
-    *v = c - 'A';
-    stack_append(&poly, (void *)v);
+    // Count current element
+    short ai = a - 'A';
+    short bi = b - 'A';
+    elems[ai] += 1;
+    
+    // No pair available
+    if(b == '\n' || b == ' ') break;
+    
+    // Increase amount of generators
+    rules_grid[ai][bi].count += 1;
+    a = b;
   }
-  // Reverse stack to get proper order
-  stack_reverse(&poly);
   
   // Read rules
   rules = NULL;
   rlen = 0;
   while(scanf(" %c%c -> %c", &a, &b, &c) > 0) {
-    short ai = a-'A';
-    short bi = b-'A';
-    rule_t *r = new_rule(ai, bi, c-'A', rlen);
-    rules_grid[ai][bi] = r;
-    stack_append(&rules, (void *)r);
+    short ai = a - 'A';
+    short bi = b - 'A';
+    rules_grid[ai][bi].in_a =  ai;
+    rules_grid[ai][bi].in_b =  bi;
+    rules_grid[ai][bi].gen = c-'A';
+    rules_grid[ai][bi].index =  rlen;
     rlen++;
+
+    rule_t **r = (rule_t **)malloc(sizeof(**r));
+    *r = &(rules_grid[ai][bi]);
+    stack_append(&rules, (void *)(r));
   }
-  
-  // Build initial generators from starting templates
-  rule_build(poly, rules_grid, elems);
   
   // Link rules to each other
   rule_link(rules, rules_grid);
@@ -212,10 +178,10 @@ int main() {
   
 
   free(elems);
-  for(int i=0; i<NUM_ELEMS; i++)
+  for(int i=0; i<NUM_ELEMS; i++) {
     free(rules_grid[i]);
+  }
   free(rules_grid);
-  stack_free(&poly);
   stack_free(&rules);
 
   return 0;

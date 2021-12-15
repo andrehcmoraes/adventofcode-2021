@@ -1,9 +1,11 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-
 #define MAX_ROWS 100
 #define MAX_COLS 100
+
+#define TILES_ROWS 5
+#define TILES_COLS 5
 
 #define RISK_LIMIT 10
 
@@ -165,14 +167,29 @@ uint64_t find_path(char **grid, uint64_t ncols, uint64_t nrows,
   return res;
 }
 
+// Just expand bro
+void grid_expand(char **grid, uint64_t nrows, uint64_t ncols, 
+    uint64_t trows, uint64_t tcols) {
+  
+  uint64_t ii = trows * nrows;
+  uint64_t jj = tcols * ncols;
+  for(uint64_t i=0; i<nrows; i++) {
+    for(uint64_t j=0; j<ncols; j++) {
+      int d = grid[i][j]+trows+tcols;
+      grid[ii+i][jj+j] = d < RISK_LIMIT ? d : d - RISK_LIMIT + 1;
+    }
+  }
+  
+}
+
 int main() {
   char **grid;
   
-  grid = (char **)malloc(MAX_ROWS * sizeof(*grid));
-  for(int i=0; i<MAX_ROWS; i++) {
-    grid[i] = (char *)malloc(MAX_COLS * sizeof(*(grid[i])));
-    for(int j=0; j<MAX_COLS; j++)
-      grid[i][j] = 0;
+  grid = (char **)malloc(TILES_ROWS * MAX_ROWS * sizeof(*grid));
+  for(uint64_t i=0; i<MAX_ROWS * TILES_ROWS; i++) {
+    grid[i] = (char *)malloc(TILES_COLS * MAX_COLS * sizeof(*(grid[i])));
+    for(uint64_t j=0; j<MAX_COLS * TILES_COLS; j++)
+      grid[i][j] = RISK_LIMIT;
   }
   
   // Read grid
@@ -190,11 +207,21 @@ int main() {
     grid[nrows][col] = c - '0';
     col++;
   }
-  
+
+  // Expand grid
+  for(uint64_t trows=0; trows<TILES_ROWS; trows++) {
+    for(uint64_t tcols=0; tcols<TILES_COLS; tcols++) {
+      if(!trows && !tcols) continue;
+      grid_expand(grid, nrows, ncols, trows, tcols);
+    }
+  }
+  ncols *= TILES_COLS;
+  nrows *= TILES_ROWS;
+
   uint64_t risk = find_path(grid, ncols, nrows, 0, 0, ncols-1, nrows-1);
   printf("Path with lowest risk: %llu\n", risk);
 
-  for(int i=0; i<MAX_ROWS; i++)
+  for(uint64_t i=0; i<MAX_ROWS * TILES_ROWS; i++)
     free(grid[i]);
   free(grid);
   

@@ -14,7 +14,17 @@
 #define PACKET_LEN_LENGTH_PACKETS 11
 #define PACKET_LEN_GROUP 5
 
+#define PACKET_TYPE_OP_SUM 0
+#define PACKET_TYPE_OP_MUL 1
+#define PACKET_TYPE_OP_MIN 2
+#define PACKET_TYPE_OP_MAX 3
+
 #define PACKET_TYPE_LITERAL 4
+
+#define PACKET_TYPE_OP_GTR 5
+#define PACKET_TYPE_OP_LSS 6
+#define PACKET_TYPE_OP_EQL 7
+
 
 #define FOREACH_STATE(STATE) \
         STATE(P_VERSION) \
@@ -32,7 +42,7 @@ enum STATE_ENUM {
 };
 
 typedef struct mstate {
-  int state;
+  int state, has_arg;
   uint64_t version, type, plen;
   uint64_t value, len;
 } mstate_t;
@@ -58,9 +68,26 @@ uint64_t buff_read(char *buffer, uint64_t *bpos, uint64_t len) {
   return v;
 }
 
-uint64_t decode(char buffer[], uint64_t *bidx, uint64_t blen, unsigned long long *vsum) {
-  mstate_t m = {.state = P_VERSION, .version=-1, .type=-1, .plen=-1, .value = 0};
+uint64_t handle_op(int has_arg, uint64_t arg0, uint64_t arg1, uint64_t type) {
+  if(!has_arg) return arg0;
+
+  switch(type) {
+    case PACKET_TYPE_OP_SUM: return arg1 + arg0;
+    case PACKET_TYPE_OP_MUL: return arg1 * arg0;
+    case PACKET_TYPE_OP_MIN: return arg1 < arg0 ? arg1 : arg0;
+    case PACKET_TYPE_OP_MAX: return arg1 > arg0 ? arg1 : arg0;
+    case PACKET_TYPE_OP_GTR: return arg1 > arg0;
+    case PACKET_TYPE_OP_LSS: return arg1 < arg0;
+    case PACKET_TYPE_OP_EQL: return arg1 == arg0;
+  }
+  return arg0;
+}
+
+uint64_t decode(char buffer[], uint64_t *bidx, uint64_t blen, 
+    unsigned long long *vsum) {
+  mstate_t m = {.state = P_VERSION, .has_arg=0};
   uint64_t bpos = *bidx;
+  uint64_t arg;
   while(m.state != P_EXTRA) {
     switch(m.state) {
       case P_VERSION:
@@ -81,14 +108,20 @@ uint64_t decode(char buffer[], uint64_t *bidx, uint64_t blen, unsigned long long
       case P_LEN_BITS:
         m.len = buff_read(buffer, &bpos, PACKET_LEN_LENGTH_BITS);
         m.len += bpos;
-        while(m.len > bpos)
-          decode(buffer, &bpos, blen, vsum);
+        while(m.len > bpos) {
+          arg = decode(buffer, &bpos, blen, vsum);
+          m.value = handle_op(m.has_arg, arg, m.value, m.type);
+          m.has_arg = 1;
+        }
         m.state = P_EXTRA;
         break;
       case P_LEN_PACKETS:
         m.len = buff_read(buffer, &bpos, PACKET_LEN_LENGTH_PACKETS);
-        for(int i=0; i<m.len; i++)
-          decode(buffer, &bpos, blen, vsum);
+        for(int i=0; i<m.len; i++) {
+          arg = decode(buffer, &bpos, blen, vsum);
+          m.value = handle_op(m.has_arg, arg, m.value, m.type);
+          m.has_arg = 1;
+        }
         m.state = P_EXTRA;
         break;
       case P_LITERAL:
@@ -114,8 +147,8 @@ int main() {
     blen += buff_add(c, buffer, blen);
   }
   
-  decode(buffer, &bpos, blen, &vsum);
-  printf("Sum version number: %llu\n", vsum);
+  uint64_t ans = decode(buffer, &bpos, blen, &vsum);
+  printf("Evaluated expression: %llu\n", ans);
   
   return 0;
 }

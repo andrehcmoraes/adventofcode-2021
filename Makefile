@@ -5,6 +5,7 @@ SHELL = /bin/bash
 CFLAGS = -Wall -g -std=c11
 DFLAGS = -g
 SFLAGS= -O4
+LFLAGS = -lm
 CC = gcc
 
 # Generate rules for each day
@@ -21,13 +22,13 @@ day%_bn:
 
 # Debug
 %.debug:
-	${CC} ${INC_FLAGS} ${CFLAGS} ${DFLAGS} $*/$*_a.c -o $*_a.bin
-	${CC} ${INC_FLAGS} ${CFLAGS} ${DFLAGS} $*/$*_b.c -o $*_b.bin
+	${CC} ${INC_FLAGS} ${CFLAGS} ${DFLAGS} $*/$*_a.c -o $*_a.bin ${LFLAGS}
+	${CC} ${INC_FLAGS} ${CFLAGS} ${DFLAGS} $*/$*_b.c -o $*_b.bin ${LFLAGS}
 
 # Fast
 %.out:
-	${CC} ${INC_FLAGS} ${CFLAGS} ${SFLAGS} $*/$*_a.c -o $*_a.bin
-	${CC} ${INC_FLAGS} ${CFLAGS} ${SFLAGS} $*/$*_b.c -o $*_b.bin
+	${CC} ${INC_FLAGS} ${CFLAGS} ${SFLAGS} $*/$*_a.c -o $*_a.bin ${LFLAGS}
+	${CC} ${INC_FLAGS} ${CFLAGS} ${SFLAGS} $*/$*_b.c -o $*_b.bin ${LFLAGS}
 
 # Make and run
 day%: %.out

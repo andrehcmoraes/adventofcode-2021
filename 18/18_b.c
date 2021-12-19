@@ -25,6 +25,15 @@ void stack_append(stack_t **s, void *v) {
   *s = t;
 }
 
+void *stack_get(stack_t *s, int n) {
+  stack_t *t = s;
+  for(int i=0; i<n; i++) {
+    t = t->next;
+    if(t == NULL) return NULL;
+  }
+  return t->val;
+}
+
 void *stack_pop(stack_t **h) {
   stack_t *s = *h;
   if(s == NULL) return NULL;
@@ -117,6 +126,20 @@ unsigned long long pairs_magnitude(pair_t *p) {
 void pairs_append(stack_t **s, int l, int v) {
   pair_t *p = pairs_new(l, v, NULL);
   stack_append(s, (void *)p);
+}
+
+
+pair_t *pairs_copy(pair_t *p) {
+  if(p == NULL) return NULL;
+  
+  pair_t *v = pairs_new(p->level, p->val, NULL);
+  v->left = pairs_copy(p->left);
+  v->right = pairs_copy(p->right);
+
+  if(v->left != NULL) v->left->parent = v;
+  if(v->right != NULL) v->right->parent = v;
+
+  return v;
 }
 
 void pairs_free(pair_t **p) {
@@ -290,23 +313,53 @@ int pairs_read(pair_t **pp) {
 }
 
 int main() {
+  stack_t *numbers = NULL;
   pair_t *p = NULL;
-  int x, y;
+  int x, y, n;
   x = 1;
+  n = 0;
   while(x) {
-    // Read next line
     x = pairs_read(&p);
-    do {
-      y = pairs_reduce_explode(p);
-      if(y) continue;
-      y = pairs_reduce_split(p);
-    } while(y);
+    if(p == NULL) continue;
+    
+    stack_append(&numbers, (void *)p);
+    n++;
+    p = NULL;
   }
-
-  unsigned long long ans = pairs_magnitude(p);
-  printf("Final Magnitude: %llu\n", ans);
   
-  pairs_free(&p);
+  unsigned long long max = 0;
+  // Slowwww
+  for(int i=0; i<n; i++) {
+    for(int j=0; j<n; j++) {
+      if(i == j) continue;
+      pair_t *a = (pair_t *)stack_get(numbers, i);
+      pair_t *b = (pair_t *)stack_get(numbers, j);
+      
+      pair_t *aa = pairs_copy(a);
+      pair_t *bb = pairs_copy(b);
+      
+      p = pairs_add(aa, bb);
+      do {
+        y = pairs_reduce_explode(p);
+        if(y) continue;
+        y = pairs_reduce_split(p);
+      } while(y);
+      
+      unsigned long long ans = pairs_magnitude(p);
+      max = ans > max ? ans : max;
+      pairs_free(&p);
+    }
+  }
+  
+  
+  printf("Max Magnitude: %llu\n", max);
+  
+  while(numbers!= NULL) {
+    stack_t *t = numbers;
+    numbers = numbers->next;
+    if(t->val != NULL) pairs_free((pair_t **)&(t->val));
+    free(t);
+  }
   
   return 0;
 }

@@ -22,9 +22,18 @@ typedef struct scanner {
 } scanner_t;
 
 scanner_t scan[MAX_SCANNERS];
+point_t scan_deltas[MAX_SCANNERS][MAX_SCANNERS];
+int scan_merged[MAX_SCANNERS];
 
 int point_equals(point_t *a, point_t *b) {
   return (a->x == b->x) && (a->y == b->y) && (a->z == b->z);
+}
+
+int point_dist(point_t *a, point_t *b) {
+  int x = a->x > b->x ? a->x - b->x : b->x - a->x;
+  int y = a->y > b->y ? a->y - b->y : b->y - a->y;
+  int z = a->z > b->z ? a->z - b->z : b->z - a->z;
+  return x+y+z;
 }
 
 void point_copy(point_t *a, point_t *b) {
@@ -70,12 +79,12 @@ void point_rotations(point_t *p, point_t r[]) {
 
 // Merge all points from Scanner 'a' to Scanner 'b'
 // by rotating all points from 'a' by 'i' and adding delta 'd'
-int scanner_merge(point_t *d, int i, int a, int b, int ma, int mb) {
+int scanner_merge(int n, point_t *d, int i, int a, int b, int ma, int mb) {
   point_t r[ROTATIONS_NUM];
   point_t p;
   int sum = 0;
   int found = 0;
-
+  
   for(int ai=0; ai<ma; ai++) {
     point_copy(&p, &(scan[a].points[ai]));
     point_rotations(&p, r);
@@ -100,8 +109,25 @@ int scanner_merge(point_t *d, int i, int a, int b, int ma, int mb) {
     mb++;
   }
   
+  // Update scanners distance
+  for(int j=0; j<n; j++) {
+    // Skip scanners that weren't merged into 'a'
+    if(scan_merged[j] != a) continue;
+    
+    // Update 
+    point_copy(&p, &(scan_deltas[a][j]));
+    point_rotations(&p, r);
+    point_copy(&p, &(r[i]));
+    point_t delta = {.x=d->x + p.x, .y=d->y + p.y, .z=d->z + p.z};
+    point_copy(&(scan_deltas[b][j]), &delta);
+    scan_merged[j] = b;
+  }
+  point_copy(&(scan_deltas[b][a]), d);
+  
   // New number of points
   scan[b].m = mb;
+  scan[a].m = 0;
+  scan_merged[a] = b;
   return sum;
 }
 
@@ -148,7 +174,7 @@ int scanner_rotate(point_t *d, int i, int a, int b, int ma, int mb) {
 }
 
 // Try to match scanner 'a' with scanner 'b'
-int scanner_match(int a, int b, int ma, int mb) {
+int scanner_match(int n, int a, int b, int ma, int mb) {
   point_t d;
   int matched = 0;
 
@@ -156,7 +182,7 @@ int scanner_match(int a, int b, int ma, int mb) {
     matched = scanner_rotate(&d, i, a, b, ma, mb);
     if(matched) {
       // Scanner 'a' matched Scanner 'b'
-      scanner_merge(&d, i, a, b, ma, mb);
+      scanner_merge(n, &d, i, a, b, ma, mb);
       return 1;
     }
   }
@@ -184,18 +210,37 @@ int main() {
     n++;
   }
 
+  for(int i=0; i<n; i++) {
+    scan_merged[i] = -1;
+    for(int j=0; j<n; j++) {
+      scan_deltas[i][j].x = 0;
+      scan_deltas[i][j].y = 0;
+      scan_deltas[i][j].z = 0;
+    }
+  }
+
   int matched = 0;
   // For each scanner - try to match it with another scanner
   // When match happens - transfer all points from one scanner to another
   for(int a=n; a>=0; a--) {
     for(int b=a-1; b>=0; b--) {
-      matched = scanner_match(a, b, scan[a].m, scan[b].m);
+      matched = scanner_match(n, a, b, scan[a].m, scan[b].m);
       if(matched) break;
+    }
+  }
+
+  // All scans distances are now relative to scanner 0
+  int maxdist = 0;
+  for(int a=n; a>=0; a--) {
+    for(int b=a-1; b>=0; b--) {
+      int dist = point_dist(&(scan_deltas[0][a]), &scan_deltas[0][b]);
+      maxdist = dist > maxdist ? dist : maxdist;
     }
   }
 
   // Scan 0 has all points
   printf("Total beacons: %d\n", scan[0].m);
+  printf("Maximum dist: %d\n", maxdist);
   
   return 0;
 }

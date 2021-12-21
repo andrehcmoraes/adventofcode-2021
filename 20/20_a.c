@@ -2,16 +2,18 @@
 #include<stdlib.h>
 #include<string.h>
 
+#define MAX_STEPS 50
 #define ALGORITHM_LEN 512
+
 #define GRID_ROWS 100
 #define GRID_COLS 100
-#define MAX_STEPS 10
 #define MAX_ROWS (GRID_ROWS+(2*MAX_STEPS))
 #define MAX_COLS (GRID_COLS+(2*MAX_STEPS))
 
 #define STEPS 2
 
 static char *FORMAT_READ="%%%ds\n";
+int CUR_STEPS = 0;
 
 // Expand grid with extra rows and cols
 // Assign the current state of the inifinite numbers
@@ -68,7 +70,8 @@ void grid_enhance(char z, char alg[], char **grid, int nrows, int ncols) {
 // Expand grid and enhance on every step
 // Keep track of the infinite numbers state
 void grid_steps(int steps, char alg[], char **grid, int *nrows, int *ncols) {
-  if(steps > MAX_STEPS) {
+  CUR_STEPS += steps;
+  if(CUR_STEPS > MAX_STEPS) {
     printf("[!] Error: Maximum number of steps exceeded\n");
     exit(-1);
   }
@@ -123,10 +126,13 @@ int main() {
   }
   
   // Perform the steps
-  grid_steps(STEPS, alg, grid, &nrows, &ncols);
+  int steps = STEPS;
+  unsigned long long sum = 0;
+  grid_steps(steps, alg, grid, &nrows, &ncols);
 
-  unsigned long long sum = grid_count(grid, nrows, ncols);
-  printf("Lit pixels after %d steps: %llu\n", STEPS, sum);
+  sum = grid_count(grid, nrows, ncols);
+  printf("Lit pixels after %d steps: %llu\n", steps, sum);
+
 
   for(int i=0; i<MAX_ROWS; i++)
     free(grid[i]);

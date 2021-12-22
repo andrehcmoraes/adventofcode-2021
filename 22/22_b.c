@@ -6,6 +6,7 @@
   // Compile with
   // make day22_bn
   #include <openssl/bn.h>
+  #define CPY_BIGNUM(a,b) BN_copy(a,b);
   #define ADD_BIGNUM(a,b) BN_add(a,a,b);
   #define MUL_BIGNUM(a,b) BN_mul(a,a,b,ctx);
   #define SET_BIGNUM(a,b) BN_set_word(a,b);
@@ -14,7 +15,8 @@
   #define BIGNUMBA BIGNUM*
 
   BN_CTX *ctx;
-#else  
+#else
+  #define CPY_BIGNUM(a,b) a=b;
   #define ADD_BIGNUM(a,b) a = a+b;
   #define INI_BIGNUM(a) a = ((unsigned long long) 0);
   #define MUL_BIGNUM(a,b) a = a*b;
@@ -77,18 +79,13 @@ typedef struct cuboid {
 } cuboid_t;
 
 // Cuboid volume - uga buga version
-BIGNUMBA cuboid_vol(cuboid_t *c) {
-  BIGNUMBA a;
-  BIGNUMBA b;
-  INI_BIGNUM(a);
-  INI_BIGNUM(b);
+BIGNUMBA cuboid_vol(cuboid_t *c, BIGNUMBA a, BIGNUMBA b) {
   
   SET_BIGNUM(a, (c->x2 - c->x1 + 1));
   SET_BIGNUM(b, (c->y2 - c->y1 + 1));
   MUL_BIGNUM(a,b);
   SET_BIGNUM(b, (c->z2 - c->z1 + 1));
   MUL_BIGNUM(a,b);
-  FRE_BIGNUM(b);
   return a;
 }
 
@@ -196,25 +193,34 @@ void cuboid_collide(int on, stack_t **regions, cuboid_t *cbd) {
 }
 
 BIGNUMBA cuboid_count(stack_t *t) {
+  BIGNUMBA prev;
   BIGNUMBA sum;
+  BIGNUMBA aux1;
+  BIGNUMBA aux2;
   
   INI_BIGNUM(sum);
+  INI_BIGNUM(aux1);
+  INI_BIGNUM(aux2);
+  INI_BIGNUM(prev);
   while(t != NULL) {
     cuboid_t *c = (cuboid_t *)t->val;
     t = t->next;
     
+    BIGNUMBA delta = cuboid_vol(c, aux1, aux2);
+    CPY_BIGNUM(prev, sum);
+    ADD_BIGNUM(sum, delta);
+
     #ifndef USE_BIG_ENUM
-    // Definetely WILL happen
-    if(sum+cuboid_vol(c) < sum) {
+    // Can definetely happen!
+    if(prev > sum) {
       printf("[!] OVERFLOW DETECTED!!!\nRecompile with BIGNUM\n");
       return -1;
     }
     #endif
-    BIGNUMBA delta = cuboid_vol(c);
-    ADD_BIGNUM(sum, delta);
-    FRE_BIGNUM(delta);
   }
-  
+  FRE_BIGNUM(aux1);
+  FRE_BIGNUM(aux2);
+  FRE_BIGNUM(prev);
   return sum;
 }
 

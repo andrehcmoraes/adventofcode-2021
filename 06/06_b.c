@@ -12,13 +12,11 @@
   #include <openssl/bn.h>
   #define ADD_BIGNUM(a,b) BN_add(a,a,b);
   #define INI_BIGNUM(a) { a =  BN_new(); BN_zero(a); }
-  #define SET_BIGNUM(a,b) BN_copy(a,b);
   #define ZER_BIGNUM(a) BN_is_zero(a)
   #define BN_ONE BN_value_one()
 #else  
   #define ADD_BIGNUM(a,b) a = a+b;
   #define INI_BIGNUM(a) a = ((unsigned long long) 0);
-  #define SET_BIGNUM(a,b) a = b;
   #define ZER_BIGNUM(a) a == ((unsigned long long) 0)
   #define BN_ONE ((unsigned long long) 1)
 #endif
@@ -83,7 +81,7 @@ int main() {
     BN_CTX_free(ctx);
     BN_free(sum);
     free(timers);
-    free(str);
+    OPENSSL_free(str);
   #else
     printf("%llu\n", sum);
   #endif

@@ -1,24 +1,33 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-// Generic stack
+// Double linked stack
 typedef struct stack {
-  void *v;
-  struct stack *next;
+  void *val;
+  struct stack *next, *prev;
 } stack_t;
 
 void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
   t->next = *s;
-  t->v = v;
+  t->prev = NULL;
+  t->val = v;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
 }
 
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    if(t->v != NULL) free(t->v);
+    if(t->val != NULL) f(t->val);
     free(t);
   }
 }
@@ -106,11 +115,11 @@ int main() {
   // Apply points
   stack_t *t = points;
   while(t != NULL) {
-    point_t *p = (point_t *)(t->v);
+    point_t *p = (point_t *)(t->val);
     t = t->next;
     grid[p->y][p->x] = 1;
   }
-  stack_free(&points);
+  stack_free(&points, NULL);
   
   // Do folds
   int n;

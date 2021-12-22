@@ -73,21 +73,22 @@ void stack_append(stack_t **s, void *v) {
   *s = t;
 }
 
-void stack_pop(stack_t **h, stack_t *s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
+  while(*s != NULL) {
+    stack_t *t = *s;
+    *s = (*s)->next;
+    if(t->val != NULL) f(t->val);
+    free(t);
+  }
+}
+
+void stack_del(stack_t **h, stack_t *s) {
   if(s->next != NULL) s->next->prev = s->prev;
   if(s->prev != NULL) s->prev->next = s->next;
   if(s->val  != NULL) free(s->val);
   if(*h == s) *h = s->next;
   free(s);
-}
-
-void stack_free(stack_t **s) {
-  while(*s != NULL) {
-    stack_t *t = *s;
-    *s = (*s)->next;
-    if(t->val != NULL) free(t->val);
-    free(t);
-  }
 }
 
 // Dictionary with stack to handle collision
@@ -141,8 +142,8 @@ void dict_del(dict_t *d, void *key) {
   h = h % d->size;
 
   if(e->value) free(e->value);
-  stack_pop(&(d->keys), e->key_pos);
-  stack_pop(&(d->pairs[h]), e->self);
+  stack_del(&(d->keys), e->key_pos);
+  stack_del(&(d->pairs[h]), e->self);
   d->len--;
 }
 
@@ -170,7 +171,7 @@ void dict_set(dict_t *d, void *key, void *val) {
   d->len++;
 }
 
-void dict_free(dict_t **d) {
+void dict_free(dict_t **d, void (*f)(void*)) {
   dict_t *t = *d;
   for(int i=0; i<t->size; i++) {
     stack_t *s = t->pairs[i];
@@ -184,7 +185,7 @@ void dict_free(dict_t **d) {
     }
   }
   free(t->pairs);
-  stack_free(&(t->keys));
+  stack_free(&(t->keys), f);
   free(t);
   *d = NULL;
 }
@@ -288,7 +289,7 @@ int main() {
   for(unsigned long long i=0; i<len_y; i++)
     free(grid[i]);
   free(grid);
-  dict_free(&points_set);
+  dict_free(&points_set, NULL);
   
   return 0;
 }

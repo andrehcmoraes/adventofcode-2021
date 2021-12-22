@@ -13,26 +13,45 @@
 
 #define MAX_SMALL 1
 
-// Generic stack
+// Double linked stack
 typedef struct stack {
-  void *v;
-  struct stack *next;
+  void *val;
+  struct stack *next, *prev;
 } stack_t;
 
 void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
   t->next = *s;
-  t->v = v;
+  t->prev = NULL;
+  t->val = v;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
 }
 
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    if(t->v != NULL) free(t->v);
+    if(t->val != NULL) f(t->val);
     free(t);
   }
+}
+
+void *stack_pop(stack_t **h) {
+  stack_t *s = *h;
+  if(s == NULL) return NULL;
+  void *v = s->val;
+  (*h) = (*h)->next;
+  if(*h != NULL) (*h)->prev = NULL;
+  free(s);
+  return v;
 }
 
 // Structs to hold node information
@@ -107,17 +126,17 @@ node_t *dict_get(dict_t *d, char *str, int len) {
 
   stack_t *t = d->vals[h];
   while(t != NULL) {
-    node_dict_t *v = (node_dict_t *) t->v;
+    node_dict_t *v = (node_dict_t *) t->val;
     if(strncmp(v->name, str, len) == 0) return &(v->node);
     t = t->next;
   }
   return NULL;
 }
 
-void dict_free(dict_t **d) {
+void dict_free(dict_t **d, void (*f)(void*)) {
   dict_t *t = *d;
   for(int i=0; i<t->size; i++)
-    stack_free(&(t->vals[i]));
+    stack_free(&(t->vals[i]), f);
   free(t->vals);
   free(t);
   *d = NULL;
@@ -142,9 +161,7 @@ void path_append(stack_t **t, int c, int *v, int n) {
 }
 
 void path_pop(stack_t **t, int *c, int *v, int n) {
-  stack_t *x = *t;
-  path_t *p = (path_t *)x->v;
-  *t = x->next;
+  path_t *p = (path_t *)stack_pop(t);
   
   *c = p->current;
   for(int j=0; j<n; j++)
@@ -152,7 +169,6 @@ void path_pop(stack_t **t, int *c, int *v, int n) {
 
   free(p->visited);
   free(p);
-  free(x);
 }
 
 // While a explicit DFS stack can recover the paths just the same, it is harder
@@ -183,7 +199,7 @@ unsigned long long find_paths(stack_t **adj, int num_nodes, int nstart, int nend
 
     stack_t *t = adj[current];
     while(t!=NULL) {
-      node_t *v = (node_t *)t->v;
+      node_t *v = (node_t *)t->val;
       t = t->next;
       
       // Don't requeue start
@@ -198,7 +214,7 @@ unsigned long long find_paths(stack_t **adj, int num_nodes, int nstart, int nend
     }
   }
   // Just to be sure
-  stack_free(&paths);
+  stack_free(&paths, NULL);
   
   return sum;
 }
@@ -266,9 +282,9 @@ int main() {
   free(node_a);
   free(node_b);
   for(int i=0; i<MAX_NODES; i++)
-    stack_free(&(adj[i]));
+    stack_free(&(adj[i]), NULL);
   free(adj);
-  dict_free(&dict);
+  dict_free(&dict, NULL);
 
   return 0;
 }

@@ -14,24 +14,33 @@
 #define MAX_SMALL 1
 #define MAX_SMALL_MULTIPLE 2
 
-// Generic stack
+// Double linked stack
 typedef struct stack {
-  void *v;
-  struct stack *next;
+  void *val;
+  struct stack *next, *prev;
 } stack_t;
 
 void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
   t->next = *s;
-  t->v = v;
+  t->prev = NULL;
+  t->val = v;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
 }
 
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    if(t->v != NULL) free(t->v);
+    if(t->val != NULL) f(t->val);
     free(t);
   }
 }
@@ -108,17 +117,17 @@ node_t *dict_get(dict_t *d, char *str, int len) {
 
   stack_t *t = d->vals[h];
   while(t != NULL) {
-    node_dict_t *v = (node_dict_t *) t->v;
+    node_dict_t *v = (node_dict_t *) t->val;
     if(strncmp(v->name, str, len) == 0) return &(v->node);
     t = t->next;
   }
   return NULL;
 }
 
-void dict_free(dict_t **d) {
+void dict_free(dict_t **d, void (*f)(void*)) {
   dict_t *t = *d;
   for(int i=0; i<t->size; i++)
-    stack_free(&(t->vals[i]));
+    stack_free(&(t->vals[i]), f);
   free(t->vals);
   free(t);
   *d = NULL;
@@ -134,7 +143,7 @@ unsigned long long find_paths(stack_t **adj, int *visited, int num_nodes, int cu
   visited[current] = 1;
   stack_t *t = adj[current];
   while(t!=NULL) {
-    node_t *v = (node_t *)t->v;
+    node_t *v = (node_t *)t->val;
     t = t->next;
     
     // Don't requeue start
@@ -223,10 +232,10 @@ int main() {
   free(node_a);
   free(node_b);
   for(int i=0; i<MAX_NODES; i++)
-    stack_free(&(adj[i]));
+    stack_free(&(adj[i]), NULL);
   free(adj);
   free(visited);
-  dict_free(&dict);
+  dict_free(&dict, NULL);
 
   return 0;
 }

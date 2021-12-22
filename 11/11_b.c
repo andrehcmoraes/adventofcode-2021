@@ -10,46 +10,46 @@
 #define PROCESS_NEIGHBOUR(c1, c2, n, g, i, j, s, sl) { \
   if(c1 && c2) { \
     g[i][j]++; \
-    if(g[i][j] == n) stack_append(s, sl, i, j); \
+    if(g[i][j] == n) flash_append(s, sl, i, j); \
   } \
 }
 
-// Changed dynamic stack to stack array to reduce mallocs
-typedef struct stack {
+// Changed stack from dynamic to array to reduce mallocs
+typedef struct flash {
   int r, c;
-} stack_t;
+} flash_t;
 
-void stack_append(stack_t *s, unsigned long long *s_len, int r, int c) {
+void flash_append(flash_t *s, unsigned long long *s_len, int r, int c) {
   unsigned long long l = *s_len;
   s[l].r = r;
   s[l].c = c;
   *s_len = l + 1;
 }
 
-void stack_pop(stack_t *s, unsigned long long *s_len, int *r, int *c) {
+void flash_pop(flash_t *s, unsigned long long *s_len, int *r, int *c) {
   unsigned long long l = (*s_len) - 1;
   *r = s[l].r;
   *c = s[l].c;
   *s_len = l;
 }
 
-void grid_update(int **g, int r, int c, stack_t *s, unsigned long long *s_len) {
+void grid_update(int **g, int r, int c, flash_t *s, unsigned long long *s_len) {
   for(int i=0; i<r; i++) {
     for(int j=0; j<c; j++) {
       g[i][j]++;
-      if(g[i][j] == FLASH_LIMIT + 1) stack_append(s, s_len, i, j);
+      if(g[i][j] == FLASH_LIMIT + 1) flash_append(s, s_len, i, j);
     }
   }
 }
 
-unsigned long long grid_flash(int **g, int r, int c, stack_t *s, 
-    unsigned long long *s_len, stack_t *z) {
+unsigned long long grid_flash(int **g, int r, int c, flash_t *s, 
+    unsigned long long *s_len, flash_t *z) {
   int i, j;
 
   unsigned long long z_len = 0;
   while(*s_len > 0) {
-    stack_pop(s, s_len, &i, &j);
-    stack_append(z, &z_len, i, j);
+    flash_pop(s, s_len, &i, &j);
+    flash_append(z, &z_len, i, j);
     
     int has_left = i>0;
     int has_right = i<c-1;
@@ -77,7 +77,7 @@ unsigned long long grid_flash(int **g, int r, int c, stack_t *s,
   // Set flashed points to zero
   unsigned long long flashes = 0;
   while(z_len > 0) {
-    stack_pop(z, &z_len, &i, &j);
+    flash_pop(z, &z_len, &i, &j);
     g[i][j] = 0;
     flashes++;
   }
@@ -109,8 +109,8 @@ int main() {
   f = n = 0;
   total = cols * rows;
 
-  stack_t *f_stack = (stack_t *)malloc(total * sizeof(*f_stack));
-  stack_t *z_stack = (stack_t *)malloc(total * sizeof(*z_stack));
+  flash_t *f_stack = (flash_t *)malloc(total * sizeof(*f_stack));
+  flash_t *z_stack = (flash_t *)malloc(total * sizeof(*z_stack));
   unsigned long long f_len = 0;
   while(f != total) {
     // Update energy level step

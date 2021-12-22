@@ -4,27 +4,17 @@
 
 #define NUM_BITS 12
 
-// Double linked stack to hold all numbers
+// Double linked stack
 typedef struct stack {
-  char *bin;
+  void *val;
   struct stack *next, *prev;
 } stack_t;
 
-// Supporting struct for the stack
-typedef struct numbers {
-  stack_t *s;
-  int len;
-  int ones_sum[NUM_BITS];
-} numbers_t;
-
-void stack_append(stack_t **s, char *b) {
+void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
-  t->prev = NULL;
   t->next = *s;
-  t->bin = (char *)malloc((NUM_BITS+1)*sizeof(*b));
-  for(int i=0; i<NUM_BITS; i++) 
-    t->bin[i] = '0';
-  strcpy(t->bin, b);
+  t->prev = NULL;
+  t->val = v;
   if(*s != NULL) {
     if((*s)->prev != NULL) {
       (*s)->prev->next = t;
@@ -33,16 +23,39 @@ void stack_append(stack_t **s, char *b) {
     (*s)->prev = t;
   }
   *s = t;
-  return;
 }
 
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    free(t->bin);
+    if(t->val != NULL) f(t->val);
     free(t);
   }
+}
+
+void stack_del(stack_t **h, stack_t *s) {
+  if(s->next != NULL) s->next->prev = s->prev;
+  if(s->prev != NULL) s->prev->next = s->next;
+  if(s->val  != NULL) free(s->val);
+  if(*h == s) *h = s->next;
+  free(s);
+}
+
+// Supporting struct for the stack
+typedef struct numbers {
+  stack_t *s;
+  int len;
+  int ones_sum[NUM_BITS];
+} numbers_t;
+
+void numbers_add(numbers_t *n, char *bin) {
+  char *b = (char *)malloc((NUM_BITS+1)*sizeof(*b));
+  for(int i=0; i<NUM_BITS; i++) 
+    b[i] = '0';
+  strcpy(b, bin);
+  stack_append(&(n->s), (void *)b);
 }
 
 void numbers_filter(numbers_t **n, int i, int reverse) {
@@ -53,16 +66,14 @@ void numbers_filter(numbers_t **n, int i, int reverse) {
   }
   while(t != NULL) {
     stack_t *a = t->next;
+    char *bin = (char *)t->val;
     // If current bit did not match filter, remove it
-    if(t->bin[i] != c) {
+    if(bin[i] != c) {
       for(int j=i; j<NUM_BITS; j++)
-        if(t->bin[j] == '1') (*n)->ones_sum[j]--;
+        if(bin[j] == '1') (*n)->ones_sum[j]--;
+      
       (*n)->len--;
-      if(t->prev != NULL) t->prev->next = t->next;
-      if(t->next != NULL) t->next->prev = t->prev;
-      if((*n)->s == t) (*n)->s = t->next;
-      free(t->bin);
-      free(t);
+      stack_del(&((*n)->s), t);
     }
     t = a;
   }
@@ -79,7 +90,7 @@ void numbers_init(numbers_t **n) {
 
 void numbers_free(numbers_t **n) {
   if(*n == NULL) return;
-  stack_free(&((*n)->s));
+  stack_free(&((*n)->s), NULL);
   free(*n);
   *n = NULL;
 }
@@ -112,8 +123,8 @@ int main() {
         co2_nums->ones_sum[i]++;
       }
     }
-    stack_append(&(oxy_nums->s), buff);
-    stack_append(&(co2_nums->s), buff);
+    numbers_add(oxy_nums, buff);
+    numbers_add(co2_nums, buff);
   }
   
   for(int i=0; i<NUM_BITS; i++) {
@@ -132,12 +143,14 @@ int main() {
   }
   
   // atoi doesnt support binary
-  oxygen = strtoul(oxy_nums->s->bin, &endp, 2);
+  char *bin = (char *)oxy_nums->s->val;
+  oxygen = strtoul(bin, &endp, 2);
   if(endp == NULL || *endp != '\0') {
     printf("[!] Error, invalid binary\n");
     return -1;
   }
-  carbon = strtoul(co2_nums->s->bin, &endp, 2);
+  bin = (char *)co2_nums->s->val;
+  carbon = strtoul(bin, &endp, 2);
   if(endp == NULL || *endp != '\0') {
     printf("[!] Error, invalid binary\n");
     return -1;

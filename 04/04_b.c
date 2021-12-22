@@ -7,24 +7,16 @@
 
 #define MAX_NUM 100
 
-// Stack to hold structs
 typedef struct stack {
-  void *value;
+  void *val;
   struct stack *next, *prev;
 } stack_t;
 
-// Helper struct to hold boards
-typedef struct board {
-  int pos[BOARD_ROWS][BOARD_COLS];
-  int num[MAX_NUM];
-  int sum;
-} board_t;
-
 void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
-  t->prev = NULL;
   t->next = *s;
-  t->value = v;
+  t->prev = NULL;
+  t->val = v;
   if(*s != NULL) {
     if((*s)->prev != NULL) {
       (*s)->prev->next = t;
@@ -33,32 +25,33 @@ void stack_append(stack_t **s, void *v) {
     (*s)->prev = t;
   }
   *s = t;
-  return;
 }
 
-void stack_pop(stack_t **h, stack_t *s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
+  while(*s != NULL) {
+    stack_t *t = *s;
+    *s = (*s)->next;
+    if(t->val != NULL) f(t->val);
+    free(t);
+  }
+}
+
+void stack_del(stack_t **h, stack_t *s) {
   if(s->next != NULL) s->next->prev = s->prev;
   if(s->prev != NULL) s->prev->next = s->next;
-  if(s->value != NULL) free(s->value);
+  if(s->val  != NULL) free(s->val);
   if(*h == s) *h = s->next;
   free(s);
 }
 
 
-void stack_free(stack_t **s) {
-  while(*s != NULL) {
-    stack_t *t = *s;
-    *s = (*s)->next;
-    if(t->value != NULL) free(t->value);
-    free(t);
-  }
-}
-
-void nums_add(stack_t **s, int n) {
-  int *p = (int *)malloc(sizeof(*p));
-  *p = n;
-  stack_append(s, (void *)p);
-}
+// Helper struct to hold boards
+typedef struct board {
+  int pos[BOARD_ROWS][BOARD_COLS];
+  int num[MAX_NUM];
+  int sum;
+} board_t;
 
 void board_add(stack_t **s) {
   board_t *b = (board_t *)malloc(sizeof(*b));
@@ -119,6 +112,12 @@ int board_check(board_t *b, int n) {
   return res;
 }
 
+void nums_add(stack_t **s, int n) {
+  int *p = (int *)malloc(sizeof(*p));
+  *p = n;
+  stack_append(s, (void *)p);
+}
+
 int main() {
   int n;
   char c;
@@ -150,7 +149,7 @@ int main() {
     if(nrow == 0) {
       // Add new board
       board_add(&boards);
-      cur_board = (board_t *)(boards->value);
+      cur_board = (board_t *)(boards->val);
       nboards++;
     }
     
@@ -169,12 +168,12 @@ int main() {
   
   stack_t *t = tail;
   while(t != NULL) {
-    n = *((int*)t->value);
+    n = *((int*)t->val);
     
     stack_t *b = boards;
     while(b != NULL) {
       stack_t *v = b;
-      cur_board = (board_t *)b->value;
+      cur_board = (board_t *)b->val;
       b = b->next;
       // If number wasn't marked, continue
       if(!board_mark(cur_board, n)) continue;
@@ -187,7 +186,7 @@ int main() {
       if(nboards == 0) break;
       
       // Delete completed board
-      stack_pop(&boards, v);
+      stack_del(&boards, v);
     }
     if(nboards == 0) break;
 
@@ -197,7 +196,7 @@ int main() {
   
   printf("Last BINGO at %d! Sum * n=%d\n", n, cur_board->sum *n);
   
-  stack_free(&nums);
-  stack_free(&boards);
+  stack_free(&nums, NULL);
+  stack_free(&boards, NULL);
   return 0;
 }

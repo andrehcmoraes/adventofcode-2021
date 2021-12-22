@@ -12,46 +12,67 @@
 #define PROCESS_NEIGHBOUR(c1, c2, n, g, i, j, s) { \
   if(c1 && c2) { \
     g[i][j]++; \
-    if(g[i][j] == n) stack_append(s, i, j); \
+    if(g[i][j] == n) flash_add(s, i, j); \
   } \
 }
 
-// Using dynamic stack
+// Double linked stack
 typedef struct stack {
-  int r, c;
-  struct stack *next;
+  void *val;
+  struct stack *next, *prev;
 } stack_t;
 
-void stack_append(stack_t **s, int r, int c) {
+void stack_append(stack_t **s, void *v) {
   stack_t *t = (stack_t *)malloc(sizeof(*t));
   t->next = *s;
-  t->r = r;
-  t->c = c;
+  t->prev = NULL;
+  t->val = v;
+  if(*s != NULL) {
+    if((*s)->prev != NULL) {
+      (*s)->prev->next = t;
+      t->prev = (*s)->prev;
+    }
+    (*s)->prev = t;
+  }
   *s = t;
-  return;
 }
 
-void stack_pop(stack_t **s, int *r, int *c) {
-  stack_t *t = *s;
-  *s = (*s)->next;
-  *r = t->r;
-  *c = t->c;
-  free(t);
-}
-
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
+    if(t->val != NULL) f(t->val);
     free(t);
   }
+}
+
+void *stack_pop(stack_t **h) {
+  stack_t *s = *h;
+  if(s == NULL) return NULL;
+  void *v = s->val;
+  (*h) = (*h)->next;
+  if(*h != NULL) (*h)->prev = NULL;
+  free(s);
+  return v;
+}
+
+typedef struct flash {
+  int r, c;
+} flash_t;
+
+void flash_add(stack_t **h, int r, int c) {
+  flash_t *f = (flash_t *)malloc(sizeof(*f));
+  f->r = r;
+  f->c = c;
+  stack_append(h, (void *) f);
 }
 
 void grid_update(int **g, int r, int c, stack_t **s) {
   for(int i=0; i<r; i++) {
     for(int j=0; j<c; j++) {
       g[i][j]++;
-      if(g[i][j] == FLASH_LIMIT + 1) stack_append(s, i, j);
+      if(g[i][j] == FLASH_LIMIT + 1) flash_add(s, i, j);
     }
   }
 }
@@ -62,8 +83,11 @@ unsigned long long grid_flash(int **g, int r, int c, stack_t **s) {
   // Stack with points to set energy level to zero after flash step
   stack_t *zeros = NULL;
   while(*s != NULL) {
-    stack_pop(s, &i, &j);
-    stack_append(&zeros, i, j);
+    flash_t *f = (flash_t *)stack_pop(s);
+    i = f->r;
+    j = f->c;
+    free(f);
+    flash_add(&zeros, i, j);
     
     int has_left = i>0;
     int has_right = i<c-1;
@@ -91,7 +115,10 @@ unsigned long long grid_flash(int **g, int r, int c, stack_t **s) {
   // Set flashed points to zero
   unsigned long long flashes = 0;
   while(zeros != NULL) {
-    stack_pop(&zeros, &i, &j);
+    flash_t *f = (flash_t *)stack_pop(&zeros);
+    i = f->r;
+    j = f->c;
+    free(f);
     g[i][j] = 0;
     flashes++;
   }
@@ -121,21 +148,18 @@ int main() {
   stack_t *f_stack = NULL;
   unsigned long long sum = 0;
   for(int n=0; n<NUM_STEPS; n++) {
-
-
     // Update energy level step
     grid_update(grid, rows, cols, &f_stack);
 
     // Flash step
     sum += grid_flash(grid, rows, cols, &f_stack);
-
   }
 
     
 
   printf("Number of flashes after %d steps: %llu\n", NUM_STEPS, sum);
   
-  stack_free(&f_stack);
+  stack_free(&f_stack, NULL);
   for(int i=0; i<MAX_ROWS; i++)
     free(grid[i]);
   free(grid);

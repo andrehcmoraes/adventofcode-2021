@@ -11,11 +11,16 @@
 #define WIN_SCORE 21
 #define NUM_OUTCOMES 7
 
-// Least amount of points in 1 round  (2 turns) - 1
-// Least amount of points in 2 rounds (4 turns) - 5  (1+4)
-// Least amount of points in 3 rounds (6 turns) - 12 (1+4+7)
-// ...
-// 10 turns
+// Least amount of points in 1  turn  - 1
+// Least amount of points in 2  turns - 5  (1+4)
+// Least amount of points in 3  turns - 8  (1+4+3)
+// Least amount of points in 4  turns - 10 (1+4+3+2)
+// Least amount of points in 5  turns - 11 (1+4+3+2+1)
+// Least amount of points in 6  turns - 15 (1+4+3+2+1+4)
+// Least amount of points in 7  turns - 18 (1+4+3+2+1+4+3)
+// Least amount of points in 8  turns - 20 (1+4+3+2+1+4+3+2)
+// Least amount of points in 9  turns - 21 (1+4+3+2+1+4+3+2+1)
+// If each player play 9 turns, they're guaranteed to win >= 21 points
 #define MAX_TURNS 10
 
 
@@ -68,9 +73,9 @@ void game_count(int pos[], unsigned long long wins[]) {
       
       // Update for the next player's turn or for the next round
       if (pid == 0)
-        dp[t][1][nscr][scr2][npos][pos2] += nuniv;
+        dp[t][!pid][nscr][scr2][npos][pos2] += nuniv;
       else if(t + 1 < MAX_TURNS)
-        dp[t+1][0][scr1][nscr][pos1][npos] += nuniv;
+        dp[t+1][!pid][scr1][nscr][pos1][npos] += nuniv;
     }
   }}}}}}
   // Ta tudo bem agora

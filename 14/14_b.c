@@ -33,11 +33,12 @@ void stack_append(stack_t **s, void *v) {
   *s = t;
 }
 
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    if(t->val != NULL) free(t->val);
+    if(t->val != NULL) f(t->val);
     free(t);
   }
 }
@@ -182,7 +183,7 @@ int main() {
     free(rules_grid[i]);
   }
   free(rules_grid);
-  stack_free(&rules);
+  stack_free(&rules, NULL);
 
   return 0;
 }

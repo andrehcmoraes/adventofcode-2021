@@ -38,11 +38,12 @@ void stack_reverse(stack_t **s) {
   *s = tail;
 }
 
-void stack_free(stack_t **s) {
+void stack_free(stack_t **s, void (*f)(void*)) {
+  if(f == NULL) f = free;
   while(*s != NULL) {
     stack_t *t = *s;
     *s = (*s)->next;
-    if(t->val != NULL) free(t->val);
+    if(t->val != NULL) f(t->val);
     free(t);
   }
 }
@@ -131,7 +132,7 @@ int main() {
   
   printf("Most common minus least common: %llu\n", max-min);
   
-  stack_free(&poly);  
+  stack_free(&poly, NULL);  
   free(elems);
   for(int i=0; i<NUM_ELEMS; i++)
     free(rules[i]);

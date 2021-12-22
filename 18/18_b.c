@@ -44,41 +44,6 @@ void *stack_pop(stack_t **h) {
   return v;
 }
 
-void stack_del(stack_t **h, stack_t *s) {
-  if(s->next != NULL) s->next->prev = s->prev;
-  if(s->prev != NULL) s->prev->next = s->next;
-  if(s->val  != NULL) free(s->val);
-  if(*h == s) {
-    *h = s->next;
-    if(*h != NULL) (*h)->prev = NULL;
-  }
-  free(s);
-}
-
-void stack_reverse(stack_t **s) {
-  stack_t *t = *s;
-  stack_t *tail = t;
-  while(t != NULL) {
-    stack_t *x = t->next;
-    t->next = t->prev;
-    t->prev = x;
-    tail = t;
-    t = x;
-  }
-  *s = tail;
-}
-
-void stack_free(stack_t **s) {
-  while(*s != NULL) {
-    stack_t *t = *s;
-    *s = (*s)->next;
-    if(t->val != NULL) free(t->val);
-    free(t);
-  }
-  *s = NULL;
-}
-
-
 typedef struct pair {
   struct pair *left, *right, *parent;
   unsigned long long level;

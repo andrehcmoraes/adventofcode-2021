@@ -110,7 +110,7 @@ int main() {
 
   // Read the initial grid
   sprintf(format, FORMAT_READ, ALGORITHM_LEN);  
-  fscanf(stdin, format, alg);
+  if(fscanf(stdin, format, alg) <= 0) return 0;
   
   nrows = ncols = idx = 0;
   while(scanf("%c", &c) > 0) {

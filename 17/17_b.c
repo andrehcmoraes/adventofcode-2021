@@ -60,7 +60,8 @@ int find_t(int vx, int x1, int x2, int y1, int y2, int *sum) {
 int main() {
   int x1, x2, y1, y2;
 
-  scanf("target area: x=%d..%d, y=%d..%d", &x1, &x2, &y1, &y2);
+  if(scanf("target area: x=%d..%d, y=%d..%d", &x1, &x2, &y1, &y2) <= 0)
+    return 0;
   
   int vxmin = (int)floor(sqrt(2*x1));
   

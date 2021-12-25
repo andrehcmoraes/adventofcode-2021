@@ -55,7 +55,7 @@ int main() {
     // Read display digit
     unsigned long long display = 0;
     for(int i=0; i<NUM_DISPLAY; i++) {
-      scanf(" %s", digit);
+      if(scanf(" %s", digit) <= 0) break;
       if(digit[0] == '\n') break;
 
       int d = 0;

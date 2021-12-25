@@ -8,7 +8,7 @@
 
 int main() {
   
-  char digit[MAX_LEN];
+  char digit[MAX_LEN+1];
   int disp_sum[MAX_LEN];
 
   for(int i=0; i<MAX_LEN; i++)
@@ -22,7 +22,7 @@ int main() {
 
     // Read display digit
     for(int i=0; i<NUM_DISPLAY; i++) {
-      scanf(" %s", digit);
+      if(scanf(" %s", digit) <= 0) break;
       if(digit[0] == '\n') break;
       long int len = strlen(digit);
       disp_sum[len-1]++;

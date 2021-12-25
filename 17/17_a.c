@@ -38,7 +38,8 @@ int find_t(int t, int x1, int x2, int y1, int y2) {
 int main() {
   int x1, x2, y1, y2;
 
-  scanf("target area: x=%d..%d, y=%d..%d", &x1, &x2, &y1, &y2);
+  if(scanf("target area: x=%d..%d, y=%d..%d", &x1, &x2, &y1, &y2) <= 0)
+    return 0;
   
   // Scuff bhaskara
   double tt = (-1 + sqrt(1+8*x1))/2.0f;

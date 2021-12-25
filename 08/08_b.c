@@ -58,7 +58,7 @@ int main() {
       scanf(" %s", digit);
       if(digit[0] == '\n') break;
 
-      int d;
+      int d = 0;
       switch(strlen(digit)) {
         case 2:
           d = 1;
@@ -89,7 +89,7 @@ int main() {
     }
     sum += display;
   }
-  
+  // 1028926
   printf("Display sum: %llu\n", sum);
   
   return 0;

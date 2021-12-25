@@ -226,6 +226,7 @@ int main() {
     visited[i] = 0;
   
   unsigned long long sum = find_paths(adj, visited, n, nstart->index, nstart->index, nend->index, 0);
+  // 120506
   printf("Total paths found:%llu\n", sum);
   
   free(buff);

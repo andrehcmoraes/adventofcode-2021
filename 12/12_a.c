@@ -276,6 +276,7 @@ int main() {
 
   // Make paths
   unsigned long long sum = find_paths(adj, n, nstart->index, nend->index);
+  // 3738
   printf("Total paths found:%llu\n", sum);
   
   free(buff);

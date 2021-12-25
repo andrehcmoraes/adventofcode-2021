@@ -174,7 +174,7 @@ int main() {
     min = min > elems[i] ? elems[i] : min;
     max = max < elems[i] ? elems[i] : max;
   }
-  
+  // 2566282754493
   printf("Most common minus least common: %llu\n", max-min);
   
 

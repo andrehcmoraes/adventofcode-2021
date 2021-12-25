@@ -278,7 +278,7 @@ int main() {
     
     t = t->next;
   }
-  
+  // BLKJRBAG
   for(unsigned long long y=0; y<len_y; y++) {
     for(unsigned long long x=0; x<len_x; x++) {
       printf("%c", grid[y][x] ? '#' : ' ');

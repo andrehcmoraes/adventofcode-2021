@@ -89,7 +89,7 @@ int main() {
     if(f > fuel) break;
     fuel = f;
   }
-
+  // 343468
   printf("Best fuel: %lu\n", fuel);
   free(crabs);
   return 0;

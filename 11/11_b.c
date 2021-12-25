@@ -121,7 +121,7 @@ int main() {
     sum += f;
     n++;
   }
-  
+  // 488
   printf("First step where all dumbos flash: %llu\n", n);
   
   for(int i=0; i<MAX_ROWS; i++)

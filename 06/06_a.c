@@ -43,7 +43,7 @@ int main() {
       return -1;
     }
   }
-  
+  // 353274
   printf("Fish at %d days: %llu\n", NUM_DAYS, sum);
   
   return 0;

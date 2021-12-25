@@ -316,7 +316,7 @@ int main() {
     }
   }
   
-  
+  // 4687
   printf("Max Magnitude: %llu\n", max);
   
   while(numbers!= NULL) {

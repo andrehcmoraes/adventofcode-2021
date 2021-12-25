@@ -139,7 +139,7 @@ int main() {
     // First fold only
     break;
   }
-
+  // 755
   printf("Visible points:%llu\n", res);
 
   for(int i=0; i<len_y; i++)

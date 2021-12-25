@@ -131,6 +131,7 @@ int main() {
   grid_steps(steps, alg, grid, &nrows, &ncols);
 
   sum = grid_count(grid, nrows, ncols);
+  // 5225
   printf("Lit pixels after %d steps: %llu\n", steps, sum);
 
 

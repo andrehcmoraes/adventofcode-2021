@@ -181,7 +181,7 @@ int main() {
     // Reverse order
     t = t->prev;
   }
-  
+  // 51034
   printf("BINGO at %d! Sum * n=%d\n", n, cur_board->sum *n);
   
   stack_free(&nums, NULL);

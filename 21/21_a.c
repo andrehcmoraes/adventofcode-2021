@@ -29,7 +29,7 @@ unsigned long long dice_throw(int n) {
 
 int game_play(int n, unsigned long long score) {
   unsigned long long maxscr = 0;
-  int p;
+  int p=0;
   while(maxscr < score) {
     for(p=0; p<n; p++) {
       unsigned long long pos = players[p].pos;
@@ -61,7 +61,7 @@ int main() {
   unsigned long long lostscr = players[winp].score;
   for(int i=0; i<nplayers; i++)
     lostscr = lostscr > players[i].score ? players[i].score : lostscr;
-  
+  // 864900
   printf("Losing score * dcount: %llu\n", lostscr*dcount);
   
   

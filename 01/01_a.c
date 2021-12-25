@@ -11,6 +11,7 @@ int main() {
     if(prev < depth) res++;
     prev = depth;
   }
+  // 1451
   printf("Total increased: %d\n", res);
   
   return 0;

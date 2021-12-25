@@ -156,7 +156,7 @@ int main() {
   }
 
     
-
+  // 1667
   printf("Number of flashes after %d steps: %llu\n", NUM_STEPS, sum);
   
   stack_free(&f_stack, NULL);

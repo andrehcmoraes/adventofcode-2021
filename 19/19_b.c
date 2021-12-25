@@ -238,8 +238,9 @@ int main() {
     }
   }
 
-  // Scan 0 has all points
+  // Scanner 0 has all points
   printf("Total beacons: %d\n", scan[0].m);
+  // 13184
   printf("Maximum dist: %d\n", maxdist);
   
   return 0;

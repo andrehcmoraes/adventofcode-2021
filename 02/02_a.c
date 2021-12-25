@@ -58,7 +58,7 @@ int main() {
     else if(STR_EQL(buff, MOVE_STRING[down]))
       y += delta;
   }
-  
+  // 1484118
   printf("Depth * Pos = %d\n", x*y);
   
   return 0;

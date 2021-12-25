@@ -192,6 +192,7 @@ int main() {
   }
   
   uint64_t risk = find_path(grid, ncols, nrows, 0, 0, ncols-1, nrows-1);
+  // 503
   printf("Path with lowest risk: %llu\n", risk);
 
   for(int i=0; i<MAX_ROWS; i++)

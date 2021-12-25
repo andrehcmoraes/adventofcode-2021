@@ -82,11 +82,12 @@ int main() {
 
   // Binary search... ish
   unsigned long f1, f2;
-  int new_f1 = 1;
-  int new_f2 = 1;
+  int new_f1, new_f2;
   x1 = crabs[x1];
   x2 = crabs[x2];
-
+  f1 = crab_fuel(x1, crabs, crab_len);
+  f2 = crab_fuel(x2, crabs, crab_len);
+  new_f1 = new_f2 = 0;
   while( x1 != x2 ) {
     if(new_f1) f1 = crab_fuel(x1, crabs, crab_len);
     if(new_f2) f2 = crab_fuel(x2, crabs, crab_len);
@@ -106,7 +107,7 @@ int main() {
       BREAK_OR_ASSIGN(x2, x3, x2==x3);
     }
   }
-  
+  // 96086265
   printf("Best fuel: %lu\n", fuel);
   free(crabs);
   return 0;

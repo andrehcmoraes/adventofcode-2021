@@ -94,11 +94,12 @@ void *queue_pop(queue_t *q) {
   return v;
 }
 
-void queue_free(queue_t **q) {
+void queue_free(queue_t **q,  void (*f)(void*)) {
   queue_t *t = *q;
   if(t == NULL) return;
+  if(f == NULL) f = free;
   for(unsigned long long i=0; i<t->len; i++)
-    if(t->values[i] != NULL) free(t->values[i]);
+    if(t->values[i] != NULL) f(t->values[i]);
   free(t->values);
   free(t);
   *q = NULL;
@@ -139,7 +140,7 @@ uint64_t find_path(char **grid, uint64_t ncols, uint64_t nrows,
   }
   queue_enqueue(paths, (void *)path_new(sx, sy, 0));
 
-  while(paths != NULL) {
+  while(paths->len > 0) {
     path_t *p = (path_t*) queue_pop(paths);
     uint64_t x = p->x;
     uint64_t y = p->y;
@@ -162,7 +163,7 @@ uint64_t find_path(char **grid, uint64_t ncols, uint64_t nrows,
 
   }
   
-  queue_free(&paths);
+  queue_free(&paths, NULL);
   
   return res;
 }
@@ -219,6 +220,7 @@ int main() {
   nrows *= TILES_ROWS;
 
   uint64_t risk = find_path(grid, ncols, nrows, 0, 0, ncols-1, nrows-1);
+  // 2853
   printf("Path with lowest risk: %llu\n", risk);
 
   for(uint64_t i=0; i<MAX_ROWS * TILES_ROWS; i++)

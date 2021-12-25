@@ -40,6 +40,7 @@ int main() {
       }
     }
   }
+  // 5124
   printf("At least two =%d\n", n);
 
   for(int i=0; i<MAX_Y; i++) {

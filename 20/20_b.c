@@ -138,6 +138,7 @@ int main() {
   grid_steps(steps2 - steps1, alg, grid, &nrows, &ncols);
   
   sum = grid_count(grid, nrows, ncols);
+  // 18131
   printf("Lit pixels after %d steps: %llu\n", steps2, sum);
 
   for(int i=0; i<MAX_ROWS; i++)

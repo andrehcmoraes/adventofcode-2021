@@ -97,7 +97,7 @@ int main() {
   }
   
   game_count(pos, wins);
-  
+  // 575111835924670
   printf("Most wins: %llu\n", wins[0] > wins[1] ? wins[0] : wins[1]);
   
   

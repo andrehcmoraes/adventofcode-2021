@@ -246,6 +246,7 @@ int main() {
     cuboid_collide(on, &regions, &cbd);
   }
   
+  // 1160303042684776
   BIGNUMBA sum = cuboid_count(regions);
   #ifndef USE_BIG_ENUM
     printf("Sum of online cubes: %llu\n", sum);

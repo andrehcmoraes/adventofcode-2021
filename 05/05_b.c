@@ -71,7 +71,7 @@ int main() {
       ADD_DELTA(y1,y2,dy);
     } while( res );
   }
-  
+  // 19771
   printf("Positions with min points: %d\n", n);
 
   map_free(&map);

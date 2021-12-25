@@ -45,6 +45,7 @@ int main() {
   epsilon = (mask ^ gamma) & mask;
 
   res =  gamma*epsilon;
+  // 3309596
   printf("gamma * epsilon = %lu\n", res);
   
   return 0;

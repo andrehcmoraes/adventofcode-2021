@@ -71,7 +71,7 @@ int main() {
 
     ADD_BIGNUM(sum, timers[i]);
   }
-  
+  // 1609314870967
   printf("Fish at %d days: ", NUM_DAYS);
   #ifdef USE_BIG_ENUM
     char *str = BN_bn2dec(sum);

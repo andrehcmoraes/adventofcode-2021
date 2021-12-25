@@ -160,6 +160,7 @@ int main() {
   mask = (1 << NUM_BITS) - 1;
   oxygen &= mask;
   carbon &= mask;
+  // 2981085
   printf("oxygen = %lu, carbon =%lu, total=%lu\n", oxygen, carbon, oxygen*carbon);
   
   

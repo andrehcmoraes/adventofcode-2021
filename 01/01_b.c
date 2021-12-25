@@ -29,6 +29,7 @@ int main() {
     sums[idx] = 0;
     idx = (idx + 1) % MEASURE;
   }
+  // 1395
   printf("Total increased: %d\n", res);
   
   return 0;

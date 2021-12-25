@@ -148,6 +148,7 @@ int main() {
   }
   
   uint64_t ans = decode(buffer, &bpos, blen, &vsum);
+  // 402817863665
   printf("Evaluated expression: %llu\n", ans);
   
   return 0;

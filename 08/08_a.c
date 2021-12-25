@@ -32,6 +32,7 @@ int main() {
 
   // Number of unique digits
   long int sum = disp_sum[1] + disp_sum[2] + disp_sum[3] + disp_sum[6];
+  // 321
   printf("Unique digits: %ld\n", sum);
   
   return 0;

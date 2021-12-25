@@ -269,6 +269,7 @@ int main() {
   }
 
   unsigned long long ans = pairs_magnitude(p);
+  // 3981
   printf("Final Magnitude: %llu\n", ans);
   
   pairs_free(&p);

@@ -74,6 +74,7 @@ int main() {
   unsigned long long sum = 1;
   for(int i=0; i<NUM_BASINS; i++)
     sum = sum * basins[i];
+  // 1103130
   printf("Sum of top %d basins: %llu\n", NUM_BASINS, sum);
   
   for(int i=0; i<MAX_ROWS; i++)

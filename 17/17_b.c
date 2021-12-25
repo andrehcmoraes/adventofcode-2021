@@ -72,6 +72,7 @@ int main() {
   }
   
   printf("Max height: %d\n", max);
+  // 4556
   printf("Max values: %d\n", sum);
   
   return 0;

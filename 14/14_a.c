@@ -129,7 +129,7 @@ int main() {
     min = min > elems[i] ? elems[i] : min;
     max = max < elems[i] ? elems[i] : max;
   }
-  
+  // 2223
   printf("Most common minus least common: %llu\n", max-min);
   
   stack_free(&poly, NULL);  

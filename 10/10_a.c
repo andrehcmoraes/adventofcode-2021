@@ -94,7 +94,7 @@ int main() {
     }
     sum += val;
   }
-  
+  // 311949
   printf("Sum of syntax error points: %llu\n", sum);
   
   stack_free(&chunks, NULL);

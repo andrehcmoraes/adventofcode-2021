@@ -44,7 +44,7 @@ int main() {
       sum += is_risk(map, i, j, rows-1, cols-1);
   }
     
-  
+  // 514
   printf("Sum of risk points: %llu\n", sum);
   
   for(int i=0; i<MAX_ROWS; i++)

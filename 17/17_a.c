@@ -48,14 +48,14 @@ int main() {
   int had_invalid = 0;
   // Fake heuristic: Max height happens at highest possible time
   // And will fail at most x2 times
-  // *** The reader is welcome to prove these! ***
+  // *** The reader is welcome to prove/disprove these! ***
   for(int t=tmin; had_invalid < x2; t++) {
     int x = find_t(t, x1, x2, y1, y2);
     if(!x) had_invalid++;
     else had_invalid = 0;
     max = max < x ? x : max;
   }
-
+  // 5671
   printf("Max height: %d\n", max);
   
   return 0;

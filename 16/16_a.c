@@ -115,6 +115,7 @@ int main() {
   }
   
   decode(buffer, &bpos, blen, &vsum);
+  // 873
   printf("Sum version number: %llu\n", vsum);
   
   return 0;

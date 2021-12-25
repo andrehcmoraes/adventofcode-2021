@@ -194,7 +194,8 @@ int main() {
     }
   }
 
-  // Scan 0 has all points
+  // Scanner 0 has all points
+  // 451
   printf("Total beacons: %d\n", scan[0].m);
   
   return 0;

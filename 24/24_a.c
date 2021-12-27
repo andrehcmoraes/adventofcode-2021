@@ -2,6 +2,9 @@
 #include<stdlib.h>
 #include<string.h>
 
+// This algorithm is ready for brute-force, but requires 
+// input insights in order to solve in a reasonable time
+
 // Based on input
 // i[4] == i[3] -2 
 // i[7] == i[6] -4
@@ -181,6 +184,7 @@ int main() {
   
   find_monad(maxcode, monad);
 
+  // 91297395919993
   printf("Highest accepted model number: ");
   for(int i=0; i<MODEL_LEN; i++)
     printf("%d", maxcode[i]);

@@ -115,7 +115,6 @@ int main() {
   
   nrows = ncols = idx = 0;
   while(scanf("%c", &c) > 0) {
-    //printf("Read #%c#\n", c);
     if(c == '\n') {
       nrows++;
       ncols = idx;
